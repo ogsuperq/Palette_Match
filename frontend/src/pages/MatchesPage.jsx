@@ -83,13 +83,18 @@ export default function MatchesPage() {
 
                   <p className="text-neutral-700 mt-6 text-sm leading-relaxed">{m.reasoning}</p>
 
-                  <div className="grid grid-cols-3 gap-px bg-neutral-200 border border-neutral-200 mt-6">
-                    {(m.artist?.portfolio || []).slice(0, 3).map((p, i) => (
-                      <div key={i} className="aspect-square bg-neutral-100 overflow-hidden">
-                        <img src={p.url} alt="" className="w-full h-full object-cover" />
-                      </div>
-                    ))}
-                  </div>
+                  {(m.artist?.portfolio || []).length > 0 && (
+                    <div className={`grid gap-px bg-neutral-200 border border-neutral-200 mt-6 ${
+                      m.artist.portfolio.length === 1 ? 'grid-cols-1' :
+                      m.artist.portfolio.length === 2 ? 'grid-cols-2' : 'grid-cols-3'
+                    }`}>
+                      {m.artist.portfolio.slice(0, 3).map((p, i) => (
+                        <div key={i} className="aspect-square bg-neutral-100 overflow-hidden">
+                          <img src={p.url} alt="" className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between mt-6 pt-6 border-t border-neutral-100">
                     <div className="text-xs text-neutral-500">
