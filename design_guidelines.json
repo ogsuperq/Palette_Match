@@ -1,0 +1,102 @@
+{
+  "project_name": "Palette Match",
+  "theme": "light",
+  "archetype": "Gallery Luxury (Hybrid Archetype 5 & 4)",
+  "emotional_tone": "Curated, refined, immersive, museum-caliber, exclusive.",
+  "typography": {
+    "primary_font": "Cormorant Garamond",
+    "primary_font_usage": "Headings, hero text, numbers (e.g., match percentages). Banned: Inter, Roboto.",
+    "secondary_font": "Outfit",
+    "secondary_font_usage": "Body copy, labels, navigation, UI elements.",
+    "hierarchy": {
+      "h1": "text-5xl sm:text-6xl font-serif tracking-tighter leading-none text-neutral-900",
+      "h2": "text-3xl sm:text-4xl font-serif tracking-tight text-neutral-900",
+      "h3": "text-xl sm:text-2xl font-serif text-neutral-800",
+      "body": "text-base font-sans text-neutral-600 leading-relaxed",
+      "overline": "text-xs font-sans uppercase tracking-[0.2em] font-semibold text-neutral-500"
+    }
+  },
+  "colors": {
+    "background": {
+      "main": "#FAFAFA",
+      "surface": "#FFFFFF",
+      "surface_alt": "#F3F3F3"
+    },
+    "text": {
+      "primary": "#111111",
+      "secondary": "#555555",
+      "muted": "#888888"
+    },
+    "border": {
+      "default": "#E5E5E5",
+      "focus": "#111111"
+    },
+    "brand_accent": {
+      "primary": "#111111",
+      "gold_leaf": "#C1A68D",
+      "ai_highlight": "#D4C5B9"
+    },
+    "status": {
+      "success": "#4A6741"
+    }
+  },
+  "layout_and_spacing": {
+    "philosophy": "Neo-minimalism. Generous white space (p-8 to p-16). Avoid cramped UI.",
+    "grid_system": "Bento-style modular layouts for dashboards and galleries. Asymmetry for marketing pages.",
+    "borders_and_radius": "Sharp edges. Use rounded-none or max rounded-sm (2px) for an architectural feel.",
+    "shadows": "Minimal. Use 1px borders instead of shadows for definition. If shadow is needed: shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
+  },
+  "components": {
+    "buttons": "Flat, sharp edges. Primary: bg-neutral-900 text-white hover:bg-neutral-800. Secondary: bg-transparent border border-neutral-300 text-neutral-900 hover:border-neutral-900.",
+    "inputs": "Shadcn UI base. Customize to have rounded-none, border-neutral-300, focus:border-neutral-900 focus:ring-0. Large tap targets (h-12).",
+    "cards": "bg-white border border-neutral-200 rounded-none p-6 or p-8.",
+    "navigation": "Crystal Glassmorphism: backdrop-blur-xl bg-white/80 border-b border-neutral-200. Links must be visible on desktop.",
+    "ai_match_badge": "Subtle luxury. bg-[#F9F6F0] text-[#8C7A6B] border border-[#EADDD0] px-3 py-1 text-sm font-sans uppercase tracking-widest.",
+    "proposal_comparison": "Side-by-side bento layout. 1px borders dividing columns. Highlight recommended options with a subtle gold_leaf top border.",
+    "messaging": "Minimalist threaded view. Avoid colorful bubbles. Use clean lines, text-left alignment, and timestamp overlines."
+  },
+  "motion_and_interactions": {
+    "hover": "Opacity fades on images (hover:opacity-90). Subtle border color shifts.",
+    "transitions": "transition-all duration-300 ease-out",
+    "page_load": "Fade in with slight upward translation (framer-motion)."
+  },
+  "media_urls": {
+    "hero_background": {
+      "url": "https://static.prod-images.emergentagent.com/jobs/0b389406-3f61-49d8-b80a-afc8d5cab5c0/images/d166210cfad3af7fc357c0b1aae28cf1ff88c1d67b5ac31cd378ff8f8f2eea38.png",
+      "description": "Minimalist high-end contemporary art gallery space with dramatic abstract painting."
+    },
+    "texture_background": {
+      "url": "https://static.prod-images.emergentagent.com/jobs/0b389406-3f61-49d8-b80a-afc8d5cab5c0/images/1e907effe172cf26a4cd09abb7bc85c441a66ca6dcad547f8af40648de74ac2e.png",
+      "description": "Macro photography of thick oil paint texture."
+    },
+    "artworks": [
+      "https://images.unsplash.com/photo-1567934150921-7632371abb32?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTJ8MHwxfHNlYXJjaHwzfHxjb250ZW1wb3JhcnklMjBhYnN0cmFjdCUyMHBhaW50aW5nJTIwZ2FsbGVyeXxlbnwwfHx8fDE3ODAwMDc2MDJ8MA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTJ8MHwxfHNlYXJjaHwxfHxjb250ZW1wb3JhcnklMjBhYnN0cmFjdCUyMHBhaW50aW5nJTIwZ2FsbGVyeXxlbnwwfHx8fDE3ODAwMDc2MDJ8MA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1618331833071-ce81bd50d300?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTJ8MHwxfHNlYXJjaHwyfHxjb250ZW1wb3JhcnklMjBhYnN0cmFjdCUyMHBhaW50aW5nJTIwZ2FsbGVyeXxlbnwwfHx8fDE3ODAwMDc2MDJ8MA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1533208087231-c3618eab623c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTJ8MHwxfHNlYXJjaHw0fHxjb250ZW1wb3JhcnklMjBhYnN0cmFjdCUyMHBhaW50aW5nJTIwZ2FsbGVyeXxlbnwwfHx8fDE3ODAwMDc2MDJ8MA&ixlib=rb-4.1.0&q=85",
+      "https://images.pexels.com/photos/33591732/pexels-photo-33591732.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    ],
+    "interiors": [
+      "https://images.unsplash.com/photo-1763647972062-5e9cd48fb282?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjd8MHwxfHNlYXJjaHw0fHxsdXh1cnklMjBtaW5pbWFsaXN0JTIwbGl2aW5nJTIwcm9vbSUyMGFydHxlbnwwfHx8fDE3ODAwMDc2MDJ8MA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1646936190308-6faef1ac893c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjd8MHwxfHNlYXJjaHwzfHxsdXh1cnklMjBtaW5pbWFsaXN0JTIwbGl2aW5nJTIwcm9vbSUyMGFydHxlbnwwfHx8fDE3ODAwMDc2MDJ8MA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1646987916641-1f3c8992daa2?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBtaW5pbWFsaXN0JTIwbGl2aW5nJTIwcm9vbSUyMGFydHxlbnwwfHx8fDE3ODAwMDc2MDJ8MA&ixlib=rb-4.1.0&q=85"
+    ],
+    "artists": [
+      "https://images.unsplash.com/photo-1611244419377-b0a760c19719?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzOTB8MHwxfHNlYXJjaHwzfHxhcnRpc3QlMjBwYWludGluZyUyMHN0dWRpbyUyMHBvcnRyYWl0fGVufDB8fHx8MTc4MDAwNzYwMnww&ixlib=rb-4.1.0&q=85",
+      "https://images.pexels.com/photos/20697386/pexels-photo-20697386.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "https://images.pexels.com/photos/37542562/pexels-photo-37542562.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "https://images.pexels.com/photos/15968033/pexels-photo-15968033.png?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    ]
+  },
+  "icons_library": "lucide-react",
+  "testing": "All interactive and key informational elements MUST include a data-testid attribute.",
+  "instructions_to_main_agent": [
+    "Use pure HTML/Tailwind for marketing layout (hero, bento grids) to achieve asymmetry.",
+    "Use Shadcn UI for complex interactives (Forms, Modals, Tabs, Dropdowns) but HEAVILY CUSTOMIZE them to remove radius and match the luxury border style.",
+    "For the hero section, use max overlay opacity of bg-white/30 or a gradient overlay so the hero_gallery_space image is highly visible.",
+    "Ensure headings use Cormorant Garamond with tight tracking. Never use Inter for headings.",
+    "Install and configure Cormorant Garamond and Outfit fonts via Google Fonts in index.css.",
+    "Build a multi-step intake wizard using smooth transitions between steps. No generic progress bars; use minimal text steps (e.g., '01 / 05').",
+    "In dashboards, stick to a tight grid with sharp 1px borders. Do not overuse drop shadows."
+  ]
+}
