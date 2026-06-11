@@ -10,6 +10,25 @@ export default function MatchesPage() {
   const [project, setProject] = useState(null);
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const loadMatches = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const [p, m] = await Promise.all([
+        http.get(`/projects/${id}`),
+        http.get(`/projects/${id}/matches`),
+      ]);
+      setProject(p.data);
+      setMatches(m.data);
+    } catch (e) {
+      console.error(e);
+      setError(e.response?.data?.detail || "We could not load your artist matches.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -24,6 +43,7 @@ export default function MatchesPage() {
         setMatches(m.data);
       } catch (e) {
         console.error(e);
+        if (mounted) setError(e.response?.data?.detail || "We could not load your artist matches.");
       } finally {
         if (mounted) setLoading(false);
       }
@@ -39,6 +59,11 @@ export default function MatchesPage() {
           <div className="flex flex-col items-center justify-center py-32">
             <Loader2 className="animate-spin text-neutral-400" size={28} />
             <p className="overline text-neutral-500 mt-4">Curating your shortlist…</p>
+          </div>
+        ) : error ? (
+          <div className="border border-neutral-200 bg-white p-12 text-center">
+            <p className="text-neutral-700">{error}</p>
+            <button onClick={loadMatches} className="btn-secondary mt-6">Try again</button>
           </div>
         ) : (
           <>

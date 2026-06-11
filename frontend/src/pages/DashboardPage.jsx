@@ -9,7 +9,6 @@ const STATUS_LABEL = {
   matching: "Matching",
   matched: "Awaiting proposals",
   in_progress: "In progress",
-  awaiting_approval: "Awaiting your approval",
   completed: "Completed",
 };
 
@@ -17,10 +16,27 @@ export default function DashboardPage() {
   const { user, loading } = useAuth();
   const nav = useNavigate();
   const [projects, setProjects] = useState([]);
+  const [projectsLoading, setProjectsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const loadProjects = async () => {
+    if (!user) return;
+    setProjectsLoading(true);
+    setError("");
+    try {
+      const { data } = await http.get("/projects");
+      setProjects(data);
+    } catch (e) {
+      setError(e.response?.data?.detail || "We could not load your projects.");
+    } finally {
+      setProjectsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (!user) return;
-    http.get("/projects").then((r) => setProjects(r.data)).catch(() => {});
+    loadProjects();
+    // Reload when the authenticated account changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   if (loading) return <div className="p-16 overline text-neutral-500">Loading…</div>;
@@ -62,7 +78,16 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {projects.length === 0 ? (
+        {error ? (
+          <div className="border border-neutral-200 bg-white p-10 text-center">
+            <p className="text-neutral-700">{error}</p>
+            <button onClick={loadProjects} className="btn-secondary mt-6">Try again</button>
+          </div>
+        ) : projectsLoading ? (
+          <div className="border border-neutral-200 bg-white p-16 text-center">
+            <p className="overline text-neutral-500">Loading projects…</p>
+          </div>
+        ) : projects.length === 0 ? (
           <div className="border border-neutral-200 bg-white p-16 text-center">
             <p className="overline text-neutral-500">{isArtist ? "No invitations yet" : "No commissions yet"}</p>
             <h3 className="font-serif text-3xl mt-3">
@@ -78,7 +103,11 @@ export default function DashboardPage() {
               <div key={p.project_id} className="bg-white p-8" data-testid={`project-row-${p.project_id}`}>
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                   <div>
-                    <div className="overline text-neutral-500">{STATUS_LABEL[p.status] || p.status}</div>
+                    <div className="overline text-neutral-500">
+                      {p.status === "awaiting_approval"
+                        ? (isArtist ? "Awaiting collector approval" : "Awaiting your approval")
+                        : (STATUS_LABEL[p.status] || p.status)}
+                    </div>
                     <h3 className="font-serif text-2xl mt-2">{p.title}</h3>
                     <p className="text-sm text-neutral-600 mt-1 max-w-2xl line-clamp-2">{p.ai_brief || p.description}</p>
                   </div>

@@ -1,16 +1,11 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
+import { startLogin } from "@/lib/auth";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const nav = useNavigate();
-
-  const startLogin = () => {
-    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
-    const redirectUrl = window.location.origin + "/dashboard";
-    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
-  };
 
   return (
     <header
@@ -22,11 +17,11 @@ export default function Navbar() {
           <span className="font-serif text-2xl tracking-tighter">Palette Match</span>
           <span className="hidden sm:inline overline text-neutral-500">— curated commissions</span>
         </Link>
-        <nav className="flex items-center gap-7 text-sm">
+        <nav className="flex items-center gap-3 sm:gap-7 text-sm">
           <Link to="/artists" data-testid="nav-artists" className="hover:text-neutral-900 text-neutral-600 hidden sm:inline">
             Discover Artists
           </Link>
-          <Link to="/intake" data-testid="nav-intake" className="hover:text-neutral-900 text-neutral-600 hidden sm:inline">
+          <Link to="/intake" data-testid="nav-intake" className="hover:text-neutral-900 text-neutral-600 hidden md:inline">
             Commission Art
           </Link>
           {user ? (
@@ -50,7 +45,7 @@ export default function Navbar() {
               )}
             </>
           ) : (
-            <button data-testid="nav-signin" onClick={startLogin} className="btn-primary !py-2 !px-4">
+            <button data-testid="nav-signin" onClick={() => startLogin("/dashboard")} className="btn-primary !py-2 !px-4">
               Sign in
             </button>
           )}

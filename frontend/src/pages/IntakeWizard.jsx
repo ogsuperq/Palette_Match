@@ -1,33 +1,51 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { http } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
 import Navbar from "@/components/Navbar";
 import { ArrowRight, ArrowLeft, Sparkles, Loader2 } from "lucide-react";
+import { startLogin } from "@/lib/auth";
 
 const MEDIUMS = ["Oil", "Acrylic", "Watercolor", "Photography", "Digital", "Mixed media"];
 const STYLES = ["Abstract", "Impressionist", "Realist", "Minimalist", "Contemporary", "Classical", "Botanical", "Coastal"];
 const TIMELINES = ["1–4 weeks", "1–2 months", "2–3 months", "Flexible"];
 const BUDGETS = [500, 1500, 3000, 5000, 10000];
+const DRAFT_KEY = "palette_match_intake_draft";
+const EMPTY_FORM = {
+  title: "",
+  description: "",
+  size: "",
+  medium: "",
+  budget: 3000,
+  timeline: "",
+  location: "",
+  colors: "",
+  style: "",
+  inspiration_urls: [],
+  room_url: "",
+};
 
 export default function IntakeWizard() {
   const nav = useNavigate();
   const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    size: "",
-    medium: "",
-    budget: 3000,
-    timeline: "",
-    location: "",
-    colors: "",
-    style: "",
-    inspiration_urls: [],
-    room_url: "",
+  const [error, setError] = useState("");
+  const [form, setForm] = useState(() => {
+    try {
+      return { ...EMPTY_FORM, ...JSON.parse(sessionStorage.getItem(DRAFT_KEY) || "{}") };
+    } catch {
+      return EMPTY_FORM;
+    }
   });
+
+  useEffect(() => {
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(form));
+  }, [form]);
+
+  useEffect(() => {
+    if (user?.role === "artist") nav("/dashboard", { replace: true });
+  }, [nav, user]);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
   const steps = ["Vision", "Form", "Budget", "Style", "Review"];
@@ -39,23 +57,23 @@ export default function IntakeWizard() {
     return true;
   };
 
-  const startLogin = () => {
-    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
-    const redirectUrl = window.location.origin + "/dashboard";
-    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
-  };
-
   const submit = async () => {
-    if (!user) { startLogin(); return; }
+    if (!user) {
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify(form));
+      startLogin("/intake");
+      return;
+    }
     setSubmitting(true);
+    setError("");
     try {
       const { data: proj } = await http.post("/projects", form);
       // Kick off match
       await http.post(`/projects/${proj.project_id}/match`);
+      sessionStorage.removeItem(DRAFT_KEY);
       nav(`/project/${proj.project_id}/matches`);
     } catch (e) {
       console.error(e);
-      alert("Something went wrong. Please try again.");
+      setError(e.response?.data?.detail || "We could not create your commission. Please try again.");
       setSubmitting(false);
     }
   };
@@ -70,6 +88,11 @@ export default function IntakeWizard() {
           <span>{steps[step]}</span>
         </div>
         <div className="gold-rule mb-12"></div>
+        {error && (
+          <div className="border border-neutral-300 bg-white p-4 mb-8 text-sm text-neutral-700" role="alert">
+            {error}
+          </div>
+        )}
 
         {step === 0 && (
           <div data-testid="step-vision">
@@ -156,7 +179,7 @@ export default function IntakeWizard() {
             <div className="mt-10 space-y-8">
               <div>
                 <label className="overline">Budget (USD)</label>
-                <div className="grid grid-cols-5 gap-px bg-neutral-200 border border-neutral-200 mt-2">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-px bg-neutral-200 border border-neutral-200 mt-2">
                   {BUDGETS.map((b) => (
                     <button
                       key={b}
@@ -262,7 +285,7 @@ export default function IntakeWizard() {
             <p className="text-neutral-600 mt-3">We'll surface five artists whose work, budget, and availability match.</p>
             <div className="mt-10 border border-neutral-200 bg-white p-8 space-y-4">
               <div><span className="overline">Title</span><div className="font-serif text-2xl mt-1">{form.title}</div></div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div><span className="overline">Size</span><div className="mt-1">{form.size}</div></div>
                 <div><span className="overline">Medium</span><div className="mt-1">{form.medium}</div></div>
                 <div><span className="overline">Budget</span><div className="mt-1">${form.budget?.toLocaleString()}</div></div>

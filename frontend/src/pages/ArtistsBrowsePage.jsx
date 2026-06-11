@@ -17,7 +17,11 @@ export default function ArtistsBrowsePage() {
     setArtists(data);
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => {
+    load();
+    // Initial catalogue load; filters are applied explicitly by the user.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
