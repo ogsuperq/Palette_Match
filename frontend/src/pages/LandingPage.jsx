@@ -1,167 +1,160 @@
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { http } from "@/lib/api";
-import Navbar from "@/components/Navbar";
-import { ArrowRight, Sparkles, ShieldCheck, Brush } from "lucide-react";
+import React, { useState } from "react";
+import { ArrowRight, Check, Sparkles } from "lucide-react";
 
-const HERO = "https://static.prod-images.emergentagent.com/jobs/0b389406-3f61-49d8-b80a-afc8d5cab5c0/images/d166210cfad3af7fc357c0b1aae28cf1ff88c1d67b5ac31cd378ff8f8f2eea38.png";
+const WAITLIST_KEY = "palette_match_beta_waitlist";
+
+const STEPS = [
+  {
+    number: "01",
+    title: "Describe your vision",
+    detail: "Share the mood, palette, dimensions, and story behind the piece you imagine.",
+  },
+  {
+    number: "02",
+    title: "Get matched with artists",
+    detail: "Discover artists whose style, medium, budget, and availability align with your brief.",
+  },
+  {
+    number: "03",
+    title: "Review proposals",
+    detail: "Compare thoughtful concepts, timelines, and pricing in one considered place.",
+  },
+  {
+    number: "04",
+    title: "Commission with confidence",
+    detail: "Choose the right artist and move forward with clarity from first sketch to final work.",
+  },
+];
+
+function storeWaitlistEmail(email) {
+  const existing = JSON.parse(localStorage.getItem(WAITLIST_KEY) || "[]");
+  if (!existing.includes(email)) {
+    localStorage.setItem(WAITLIST_KEY, JSON.stringify([...existing, email]));
+  }
+}
 
 export default function LandingPage() {
-  const [artists, setArtists] = useState([]);
-  const nav = useNavigate();
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState("idle");
 
-  useEffect(() => {
-    http.get("/artists").then((r) => setArtists(r.data.slice(0, 4))).catch(() => {});
-  }, []);
+  const submitWaitlist = (event) => {
+    event.preventDefault();
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail || !event.currentTarget.checkValidity()) {
+      setStatus("error");
+      return;
+    }
+
+    storeWaitlistEmail(normalizedEmail);
+    setEmail("");
+    setStatus("success");
+  };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA]">
-      <Navbar />
+    <main className="launch-page">
+      <header className="launch-header">
+        <a href="#top" className="launch-brand" aria-label="Palette Match home">
+          Palette Match
+        </a>
+        <a href="#waitlist" className="launch-header-link">
+          Join the beta <ArrowRight size={14} aria-hidden="true" />
+        </a>
+      </header>
 
-      {/* HERO */}
-      <section className="relative min-h-[88vh] flex items-end" data-testid="hero-section">
-        <div className="absolute inset-0">
-          <img src={HERO} alt="" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-white/95 via-white/30 to-transparent" />
-        </div>
-        <div className="relative z-10 max-w-[1400px] mx-auto px-6 sm:px-10 pb-20 pt-32 w-full">
-          <div className="max-w-2xl">
-            <span className="overline text-neutral-700">An AI-powered art concierge</span>
-            <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl tracking-tighter leading-[0.95] mt-6 text-neutral-900">
-              Describe your dream artwork.<br />
-              <em className="not-italic text-neutral-600">Meet the perfect artist.</em>
-            </h1>
-            <p className="font-sans text-base sm:text-lg text-neutral-700 mt-8 max-w-xl leading-relaxed">
-              Palette Match pairs collectors with vetted artists for custom commissioned work — guided by an AI concierge, secured by escrow, finished to your standard.
-            </p>
-            <div className="mt-10 flex flex-wrap gap-3">
-              <button
-                data-testid="hero-start-cta"
-                onClick={() => nav("/intake")}
-                className="btn-primary"
-              >
-                Start a commission <ArrowRight size={16} />
-              </button>
-              <Link to="/artists" data-testid="hero-browse-cta" className="btn-secondary">
-                Browse artists
-              </Link>
-            </div>
+      <section id="top" className="launch-hero">
+        <div className="launch-art" aria-hidden="true">
+          <div className="launch-art-sun" />
+          <div className="launch-art-arch" />
+          <div className="launch-art-canvas">
+            <span />
+            <span />
+            <span />
           </div>
+          <p>Made for the work you cannot find anywhere else.</p>
+        </div>
+
+        <div className="launch-hero-copy">
+          <div className="launch-eyebrow">
+            <Sparkles size={14} aria-hidden="true" />
+            Private beta opening soon
+          </div>
+          <h1>
+            Describe your dream artwork.
+            <em>Meet the perfect artist.</em>
+          </h1>
+          <p className="launch-subheadline">
+            An AI-powered art commission platform connecting collectors, homeowners, and
+            interior designers with artists who can bring custom artwork to life.
+          </p>
+
+          <form id="waitlist" className="launch-form" onSubmit={submitWaitlist} noValidate>
+            <label htmlFor="waitlist-email">Email address</label>
+            <div className="launch-form-row">
+              <input
+                id="waitlist-email"
+                type="email"
+                value={email}
+                onChange={(event) => {
+                  setEmail(event.target.value);
+                  setStatus("idle");
+                }}
+                placeholder="you@example.com"
+                autoComplete="email"
+                required
+                aria-describedby="waitlist-message"
+              />
+              <button type="submit">
+                Join the beta waitlist <ArrowRight size={16} aria-hidden="true" />
+              </button>
+            </div>
+            <p
+              id="waitlist-message"
+              className={`launch-form-message launch-form-message--${status}`}
+              aria-live="polite"
+            >
+              {status === "success" && (
+                <>
+                  <Check size={15} aria-hidden="true" /> You are on the list. We will be in
+                  touch as beta access opens.
+                </>
+              )}
+              {status === "error" && "Enter a valid email address to join the waitlist."}
+              {status === "idle" && "Early access updates only. No noise."}
+            </p>
+          </form>
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
-      <section className="max-w-[1400px] mx-auto px-6 sm:px-10 py-24" data-testid="how-it-works">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-end mb-16">
-          <div className="lg:col-span-7">
-            <span className="overline text-neutral-500">The process</span>
-            <h2 className="font-serif text-4xl sm:text-5xl tracking-tighter mt-4 leading-tight">
-              From a sentence to a signed canvas — in nine considered steps.
-            </h2>
-          </div>
-          <p className="lg:col-span-5 text-neutral-600">
-            A guided brief, AI-matched shortlist, side-by-side proposals, and milestone-based escrow. The way commissioning art should have always felt.
+      <section className="launch-process" aria-labelledby="process-title">
+        <div className="launch-section-intro">
+          <span>The commission, considered</span>
+          <h2 id="process-title">How it works</h2>
+          <p>
+            A clearer path from the first idea to an original piece that belongs in your
+            space and your story.
           </p>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-neutral-200 border border-neutral-200">
-          {[
-            { n: "01", t: "Describe your vision", d: "A guided three-minute brief. Size, medium, palette, room, story." },
-            { n: "02", t: "AI matches your shortlist", d: "We surface five artists whose work, budget, and timeline fit." },
-            { n: "03", t: "Compare proposals", d: "Concept, price, and timeline side-by-side. Hire when you're ready." },
-          ].map((s) => (
-            <div key={s.n} className="bg-white p-10">
-              <div className="font-serif text-3xl text-neutral-300">{s.n}</div>
-              <h3 className="font-serif text-2xl mt-6">{s.t}</h3>
-              <p className="text-neutral-600 mt-3 text-sm leading-relaxed">{s.d}</p>
-            </div>
+        <div className="launch-steps">
+          {STEPS.map((step) => (
+            <article key={step.number} className="launch-step">
+              <span>{step.number}</span>
+              <h3>{step.title}</h3>
+              <p>{step.detail}</p>
+            </article>
           ))}
         </div>
       </section>
 
-      {/* FEATURED ARTISTS */}
-      <section className="max-w-[1400px] mx-auto px-6 sm:px-10 py-16 border-t border-neutral-200" data-testid="featured-artists">
-        <div className="flex items-end justify-between mb-12">
-          <div>
-            <span className="overline text-neutral-500">Now booking commissions</span>
-            <h2 className="font-serif text-4xl sm:text-5xl tracking-tighter mt-4">Curated artists</h2>
-          </div>
-          <Link to="/artists" className="overline text-neutral-700 hover:text-neutral-900">
-            View all →
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-neutral-200">
-          {artists.map((a) => (
-            <Link
-              key={a.user_id}
-              to={`/artist/${a.user_id}`}
-              data-testid={`featured-artist-${a.user_id}`}
-              className="bg-white group"
-            >
-              <div className="aspect-[4/5] overflow-hidden bg-neutral-100">
-                {a.portfolio?.[0]?.url && (
-                  <img
-                    src={a.portfolio[0].url}
-                    alt=""
-                    className="w-full h-full object-cover group-hover:opacity-90 transition-all duration-500"
-                  />
-                )}
-              </div>
-              <div className="p-6">
-                <div className="overline text-neutral-500">{a.location}</div>
-                <h3 className="font-serif text-2xl mt-2">{a.name}</h3>
-                <p className="text-sm text-neutral-600 mt-1">{a.headline}</p>
-                <div className="flex items-center justify-between mt-5 pt-5 border-t border-neutral-100">
-                  <span className="text-xs text-neutral-500">From ${a.price_low?.toLocaleString()}</span>
-                  <span className="text-xs text-neutral-900">★ {a.rating?.toFixed(1)}</span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+      <section className="launch-trust">
+        <p>Built for</p>
+        <h2>Custom art, interior design projects, and meaningful commissions.</h2>
       </section>
 
-      {/* VALUE PROPS */}
-      <section className="max-w-[1400px] mx-auto px-6 sm:px-10 py-24 border-t border-neutral-200">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          {[
-            { i: Sparkles, t: "AI concierge", d: "Claude Sonnet 4.5 reads your brief and pairs you with artists whose body of work — not their resume — fits." },
-            { i: ShieldCheck, t: "Escrow protected", d: "Funds are held safely. Released only when you approve the finished work." },
-            { i: Brush, t: "Real artists only", d: "Every artist is invited and reviewed. No prints, no resellers, no surprises." },
-          ].map(({ i: Icon, t, d }) => (
-            <div key={t}>
-              <Icon className="w-6 h-6 text-neutral-900" strokeWidth={1.2} />
-              <h3 className="font-serif text-2xl mt-6">{t}</h3>
-              <p className="text-neutral-600 mt-3 text-sm leading-relaxed">{d}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="bg-neutral-900 text-white py-24" data-testid="footer-cta">
-        <div className="max-w-[1400px] mx-auto px-6 sm:px-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <h2 className="font-serif text-4xl sm:text-5xl tracking-tighter leading-tight">
-            Tell us about the artwork you're imagining.
-          </h2>
-          <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
-            <button
-              data-testid="footer-cta-start"
-              onClick={() => nav("/intake")}
-              className="btn-primary !bg-white !text-neutral-900 !border-white hover:!bg-transparent hover:!text-white"
-            >
-              Begin your brief
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <footer className="border-t border-neutral-200 py-10">
-        <div className="max-w-[1400px] mx-auto px-6 sm:px-10 flex flex-col sm:flex-row justify-between text-xs text-neutral-500">
-          <span>© 2026 Palette Match — Curated commissions, signed by the artist.</span>
-          <span className="overline">v0.1</span>
-        </div>
+      <footer className="launch-footer">
+        <span>© Palette Match</span>
+        <span>Original work begins with a conversation.</span>
       </footer>
-    </div>
+    </main>
   );
 }
