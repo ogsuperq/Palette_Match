@@ -1,14 +1,16 @@
 """Backend tests for Palette Match — covers auth (Bearer), artists, projects, AI,
 proposals, escrow, messages, reviews, ACLs, and ObjectId leak checks."""
+
 import os
-import time
 import uuid
 import pytest
 import requests
 from datetime import datetime, timezone, timedelta
 from pymongo import MongoClient
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://palette-match-12.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get(
+    "REACT_APP_BACKEND_URL", "https://palette-match-12.preview.emergentagent.com"
+).rstrip("/")
 MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
 DB_NAME = os.environ.get("DB_NAME", "test_database")
 
@@ -25,16 +27,24 @@ def _iso(dt):
 def _create_user(role=None, name="Test User"):
     uid = f"test-{role or 'noner'}-{uuid.uuid4().hex[:8]}"
     token = f"tok_{uuid.uuid4().hex}"
-    db.users.insert_one({
-        "user_id": uid, "email": f"{uid}@palettematch.local",
-        "name": name, "picture": "", "role": role,
-        "created_at": _iso(datetime.now(timezone.utc)),
-    })
-    db.user_sessions.insert_one({
-        "user_id": uid, "session_token": token,
-        "expires_at": _iso(datetime.now(timezone.utc) + timedelta(days=7)),
-        "created_at": _iso(datetime.now(timezone.utc)),
-    })
+    db.users.insert_one(
+        {
+            "user_id": uid,
+            "email": f"{uid}@palettematch.local",
+            "name": name,
+            "picture": "",
+            "role": role,
+            "created_at": _iso(datetime.now(timezone.utc)),
+        }
+    )
+    db.user_sessions.insert_one(
+        {
+            "user_id": uid,
+            "session_token": token,
+            "expires_at": _iso(datetime.now(timezone.utc) + timedelta(days=7)),
+            "created_at": _iso(datetime.now(timezone.utc)),
+        }
+    )
     return uid, token
 
 
@@ -81,7 +91,14 @@ def test_artists_list():
     assert r.status_code == 200
     artists = r.json()
     names = [a["name"] for a in artists]
-    for expected in ["Isabella Moreau", "Jonas Reed", "Mira Okafor", "Theo Lin", "Anya Volkov", "Marcus Hale"]:
+    for expected in [
+        "Isabella Moreau",
+        "Jonas Reed",
+        "Mira Okafor",
+        "Theo Lin",
+        "Anya Volkov",
+        "Marcus Hale",
+    ]:
         assert expected in names, f"Missing artist {expected}"
     # No _id leaks
     for a in artists:
@@ -99,7 +116,9 @@ def test_artist_get_single():
 
 
 def test_artists_filter_medium_q():
-    r = requests.get(f"{BASE_URL}/api/artists", params={"medium": "Oil", "q": "coastal"}, timeout=15)
+    r = requests.get(
+        f"{BASE_URL}/api/artists", params={"medium": "Oil", "q": "coastal"}, timeout=15
+    )
     assert r.status_code == 200
     arts = r.json()
     assert len(arts) >= 1
@@ -108,7 +127,9 @@ def test_artists_filter_medium_q():
 
 # ---------- Auth ----------
 def test_auth_session_invalid():
-    r = requests.post(f"{BASE_URL}/api/auth/session", json={"session_id": "invalid-xxx"}, timeout=20)
+    r = requests.post(
+        f"{BASE_URL}/api/auth/session", json={"session_id": "invalid-xxx"}, timeout=20
+    )
     assert r.status_code == 401
 
 
@@ -129,8 +150,12 @@ def test_auth_me_with_bearer(collector):
 
 def test_set_role(fresh_user):
     uid, tok = fresh_user
-    r = requests.post(f"{BASE_URL}/api/auth/set-role", json={"role": "collector"},
-                      headers=_auth(tok), timeout=15)
+    r = requests.post(
+        f"{BASE_URL}/api/auth/set-role",
+        json={"role": "collector"},
+        headers=_auth(tok),
+        timeout=15,
+    )
     assert r.status_code == 200
     assert r.json()["role"] == "collector"
     # verify persistence
@@ -140,8 +165,12 @@ def test_set_role(fresh_user):
 
 def test_set_role_invalid(collector):
     _, tok = collector
-    r = requests.post(f"{BASE_URL}/api/auth/set-role", json={"role": "hacker"},
-                      headers=_auth(tok), timeout=15)
+    r = requests.post(
+        f"{BASE_URL}/api/auth/set-role",
+        json={"role": "hacker"},
+        headers=_auth(tok),
+        timeout=15,
+    )
     assert r.status_code == 400
 
 
@@ -152,10 +181,16 @@ def coastal_project(collector):
     payload = {
         "title": "TEST_Coastal painting",
         "description": "I want a 36x48 coastal oil painting for my Naples condo",
-        "size": "36x48", "medium": "Oil", "budget": 3000,
-        "timeline": "1-2 months", "style": "Impressionist", "location": "Naples, FL",
+        "size": "36x48",
+        "medium": "Oil",
+        "budget": 3000,
+        "timeline": "1-2 months",
+        "style": "Impressionist",
+        "location": "Naples, FL",
     }
-    r = requests.post(f"{BASE_URL}/api/projects", json=payload, headers=_auth(tok), timeout=AI_TIMEOUT)
+    r = requests.post(
+        f"{BASE_URL}/api/projects", json=payload, headers=_auth(tok), timeout=AI_TIMEOUT
+    )
     assert r.status_code == 200, f"Project creation failed: {r.status_code} {r.text}"
     proj = r.json()
     yield proj, tok
@@ -178,7 +213,9 @@ def test_project_created_with_ai_brief(coastal_project):
 
 def test_project_get_owner(coastal_project):
     proj, tok = coastal_project
-    r = requests.get(f"{BASE_URL}/api/projects/{proj['project_id']}", headers=_auth(tok), timeout=15)
+    r = requests.get(
+        f"{BASE_URL}/api/projects/{proj['project_id']}", headers=_auth(tok), timeout=15
+    )
     assert r.status_code == 200
     assert r.json()["project_id"] == proj["project_id"]
 
@@ -186,7 +223,9 @@ def test_project_get_owner(coastal_project):
 def test_project_get_non_owner_forbidden(coastal_project, collector2):
     proj, _ = coastal_project
     _, tok2 = collector2
-    r = requests.get(f"{BASE_URL}/api/projects/{proj['project_id']}", headers=_auth(tok2), timeout=15)
+    r = requests.get(
+        f"{BASE_URL}/api/projects/{proj['project_id']}", headers=_auth(tok2), timeout=15
+    )
     assert r.status_code == 403
 
 
@@ -194,8 +233,11 @@ def test_project_get_non_owner_forbidden(coastal_project, collector2):
 @pytest.fixture(scope="session")
 def matches_run(coastal_project):
     proj, tok = coastal_project
-    r = requests.post(f"{BASE_URL}/api/projects/{proj['project_id']}/match",
-                      headers=_auth(tok), timeout=AI_TIMEOUT)
+    r = requests.post(
+        f"{BASE_URL}/api/projects/{proj['project_id']}/match",
+        headers=_auth(tok),
+        timeout=AI_TIMEOUT,
+    )
     assert r.status_code == 200, f"Match failed: {r.status_code} {r.text}"
     return r.json(), proj, tok
 
@@ -218,15 +260,19 @@ def test_isabella_top_match(matches_run):
     data, _, _ = matches_run
     matches = sorted(data["matches"], key=lambda x: -x["score"])
     top = matches[0]
-    assert top["artist"]["user_id"] == "seed_artist_01", \
-        f"Isabella should be top, got {top['artist']['name']} ({top['score']})"
+    assert (
+        top["artist"]["user_id"] == "seed_artist_01"
+    ), f"Isabella should be top, got {top['artist']['name']} ({top['score']})"
     assert top["score"] >= 80
 
 
 def test_get_matches_sorted(matches_run):
     _, proj, tok = matches_run
-    r = requests.get(f"{BASE_URL}/api/projects/{proj['project_id']}/matches",
-                     headers=_auth(tok), timeout=15)
+    r = requests.get(
+        f"{BASE_URL}/api/projects/{proj['project_id']}/matches",
+        headers=_auth(tok),
+        timeout=15,
+    )
     assert r.status_code == 200
     ms = r.json()
     assert len(ms) >= 1
@@ -238,11 +284,18 @@ def test_get_matches_sorted(matches_run):
 
 
 # ---------- AI Pricing ----------
-def test_ai_pricing():
-    r = requests.post(f"{BASE_URL}/api/ai/pricing",
-                      json={"medium": "Oil", "size": "36x48",
-                            "description": "Coastal impressionist landscape"},
-                      timeout=AI_TIMEOUT)
+def test_ai_pricing(artist_in_match):
+    _, artist_token, _, _ = artist_in_match
+    r = requests.post(
+        f"{BASE_URL}/api/ai/pricing",
+        json={
+            "medium": "Oil",
+            "size": "36x48",
+            "description": "Coastal impressionist landscape",
+        },
+        headers=_auth(artist_token),
+        timeout=AI_TIMEOUT,
+    )
     assert r.status_code == 200
     j = r.json()
     for k in ("low", "recommended", "premium", "rationale"):
@@ -262,21 +315,32 @@ def artist_in_match(matches_run):
     data, proj, ctok = matches_run
     artist_id = data["matches"][0]["artist"]["user_id"]
     token = f"tok_{uuid.uuid4().hex}"
-    db.user_sessions.insert_one({
-        "user_id": artist_id, "session_token": token,
-        "expires_at": _iso(datetime.now(timezone.utc) + timedelta(days=7)),
-        "created_at": _iso(datetime.now(timezone.utc)),
-    })
+    db.user_sessions.insert_one(
+        {
+            "user_id": artist_id,
+            "session_token": token,
+            "expires_at": _iso(datetime.now(timezone.utc) + timedelta(days=7)),
+            "created_at": _iso(datetime.now(timezone.utc)),
+        }
+    )
     yield artist_id, token, proj, ctok
     db.user_sessions.delete_one({"session_token": token})
 
 
 def test_non_artist_cannot_propose(coastal_project):
     proj, ctok = coastal_project
-    r = requests.post(f"{BASE_URL}/api/proposals",
-                      json={"project_id": proj["project_id"], "price": 3000,
-                            "timeline_days": 45, "concept": "x", "references": []},
-                      headers=_auth(ctok), timeout=15)
+    r = requests.post(
+        f"{BASE_URL}/api/proposals",
+        json={
+            "project_id": proj["project_id"],
+            "price": 3000,
+            "timeline_days": 45,
+            "concept": "x",
+            "references": [],
+        },
+        headers=_auth(ctok),
+        timeout=15,
+    )
     assert r.status_code == 403
 
 
@@ -284,12 +348,15 @@ def test_non_artist_cannot_propose(coastal_project):
 def proposal(artist_in_match):
     aid, atok, proj, ctok = artist_in_match
     payload = {
-        "project_id": proj["project_id"], "price": 3200,
+        "project_id": proj["project_id"],
+        "price": 3200,
         "timeline_days": 45,
         "concept": "TEST_Soft impressionist coastal oil at 36x48.",
         "references": [],
     }
-    r = requests.post(f"{BASE_URL}/api/proposals", json=payload, headers=_auth(atok), timeout=15)
+    r = requests.post(
+        f"{BASE_URL}/api/proposals", json=payload, headers=_auth(atok), timeout=15
+    )
     assert r.status_code == 200, f"Proposal failed: {r.status_code} {r.text}"
     p = r.json()
     yield p, aid, atok, proj, ctok
@@ -306,22 +373,31 @@ def test_proposal_created(proposal):
 def test_non_collector_cannot_accept(proposal, collector2):
     p, *_ = proposal
     _, tok2 = collector2
-    r = requests.post(f"{BASE_URL}/api/proposals/{p['proposal_id']}/accept",
-                      headers=_auth(tok2), timeout=15)
+    r = requests.post(
+        f"{BASE_URL}/api/proposals/{p['proposal_id']}/accept",
+        headers=_auth(tok2),
+        timeout=15,
+    )
     assert r.status_code == 403
 
 
 def test_accept_proposal_and_escrow(proposal):
     p, aid, atok, proj, ctok = proposal
-    r = requests.post(f"{BASE_URL}/api/proposals/{p['proposal_id']}/accept",
-                      headers=_auth(ctok), timeout=15)
+    r = requests.post(
+        f"{BASE_URL}/api/proposals/{p['proposal_id']}/accept",
+        headers=_auth(ctok),
+        timeout=15,
+    )
     assert r.status_code == 200
     j = r.json()
     assert j["ok"] is True
     assert j["deposit"] == int(p["price"] * 0.5)
     # Escrow record
-    r2 = requests.get(f"{BASE_URL}/api/projects/{proj['project_id']}/escrow",
-                      headers=_auth(ctok), timeout=15)
+    r2 = requests.get(
+        f"{BASE_URL}/api/projects/{proj['project_id']}/escrow",
+        headers=_auth(ctok),
+        timeout=15,
+    )
     assert r2.status_code == 200
     esc = r2.json()
     assert esc["status"] == "deposit_held"
@@ -329,43 +405,67 @@ def test_accept_proposal_and_escrow(proposal):
     assert esc["total"] == p["price"]
     assert "_id" not in esc
     # Project should be in_progress
-    r3 = requests.get(f"{BASE_URL}/api/projects/{proj['project_id']}",
-                      headers=_auth(ctok), timeout=15)
+    r3 = requests.get(
+        f"{BASE_URL}/api/projects/{proj['project_id']}", headers=_auth(ctok), timeout=15
+    )
     assert r3.json()["status"] == "in_progress"
 
 
 def test_complete_and_release(proposal):
     p, aid, atok, proj, ctok = proposal
     # artist marks complete
-    r = requests.post(f"{BASE_URL}/api/projects/{proj['project_id']}/complete",
-                      headers=_auth(atok), timeout=15)
+    r = requests.post(
+        f"{BASE_URL}/api/projects/{proj['project_id']}/complete",
+        headers=_auth(atok),
+        timeout=15,
+    )
     assert r.status_code == 200
-    r2 = requests.get(f"{BASE_URL}/api/projects/{proj['project_id']}",
-                      headers=_auth(ctok), timeout=15)
+    r2 = requests.get(
+        f"{BASE_URL}/api/projects/{proj['project_id']}", headers=_auth(ctok), timeout=15
+    )
     assert r2.json()["status"] == "awaiting_approval"
     # collector releases
-    r3 = requests.post(f"{BASE_URL}/api/projects/{proj['project_id']}/release-funds",
-                       headers=_auth(ctok), timeout=15)
+    r3 = requests.post(
+        f"{BASE_URL}/api/projects/{proj['project_id']}/release-funds",
+        headers=_auth(ctok),
+        timeout=15,
+    )
     assert r3.status_code == 200
-    r4 = requests.get(f"{BASE_URL}/api/projects/{proj['project_id']}/escrow",
-                      headers=_auth(ctok), timeout=15)
+    r4 = requests.get(
+        f"{BASE_URL}/api/projects/{proj['project_id']}/escrow",
+        headers=_auth(ctok),
+        timeout=15,
+    )
     assert r4.json()["status"] == "released"
 
 
 # ---------- Messages ----------
 def test_messages_collector_and_artist(artist_in_match):
     aid, atok, proj, ctok = artist_in_match
-    r = requests.post(f"{BASE_URL}/api/messages",
-                      json={"project_id": proj["project_id"], "text": "TEST_Hello from collector"},
-                      headers=_auth(ctok), timeout=15)
+    r = requests.post(
+        f"{BASE_URL}/api/messages",
+        json={
+            "project_id": proj["project_id"],
+            "artist_id": aid,
+            "text": "TEST_Hello from collector",
+        },
+        headers=_auth(ctok),
+        timeout=15,
+    )
     assert r.status_code == 200
     assert "_id" not in r.json()
-    r2 = requests.post(f"{BASE_URL}/api/messages",
-                       json={"project_id": proj["project_id"], "text": "TEST_Hello from artist"},
-                       headers=_auth(atok), timeout=15)
+    r2 = requests.post(
+        f"{BASE_URL}/api/messages",
+        json={"project_id": proj["project_id"], "text": "TEST_Hello from artist"},
+        headers=_auth(atok),
+        timeout=15,
+    )
     assert r2.status_code == 200
-    r3 = requests.get(f"{BASE_URL}/api/projects/{proj['project_id']}/messages",
-                      headers=_auth(ctok), timeout=15)
+    r3 = requests.get(
+        f"{BASE_URL}/api/projects/{proj['project_id']}/messages",
+        headers=_auth(ctok),
+        timeout=15,
+    )
     assert r3.status_code == 200
     msgs = r3.json()
     texts = [m["text"] for m in msgs]
@@ -376,27 +476,35 @@ def test_messages_collector_and_artist(artist_in_match):
 def test_messages_unauthorized(coastal_project, collector2):
     proj, _ = coastal_project
     _, tok2 = collector2
-    r = requests.post(f"{BASE_URL}/api/messages",
-                      json={"project_id": proj["project_id"], "text": "TEST_intruder"},
-                      headers=_auth(tok2), timeout=15)
+    r = requests.post(
+        f"{BASE_URL}/api/messages",
+        json={"project_id": proj["project_id"], "text": "TEST_intruder"},
+        headers=_auth(tok2),
+        timeout=15,
+    )
     assert r.status_code == 403
 
 
 # ---------- Reviews ----------
 def test_review_creates_and_recomputes(artist_in_match):
     aid, atok, proj, ctok = artist_in_match
-    # capture old reviews count
-    before = requests.get(f"{BASE_URL}/api/artists/{aid}", timeout=15).json()
-    old_count = before.get("reviews_count", 0)
-    r = requests.post(f"{BASE_URL}/api/reviews",
-                      json={"project_id": proj["project_id"], "artist_id": aid,
-                            "communication": 5, "quality": 5, "timeliness": 4,
-                            "text": "TEST_great work"},
-                      headers=_auth(ctok), timeout=15)
+    r = requests.post(
+        f"{BASE_URL}/api/reviews",
+        json={
+            "project_id": proj["project_id"],
+            "artist_id": aid,
+            "communication": 5,
+            "quality": 5,
+            "timeliness": 4,
+            "text": "TEST_great work",
+        },
+        headers=_auth(ctok),
+        timeout=15,
+    )
     assert r.status_code == 200
     rev = r.json()
     assert "_id" not in rev
-    assert rev["average"] == round((5+5+4)/3, 2)
+    assert rev["average"] == round((5 + 5 + 4) / 3, 2)
     after = requests.get(f"{BASE_URL}/api/artists/{aid}", timeout=15).json()
     # Note: recompute is based on actual review docs, so count == 1 after first review
     # (seed artists have inflated reviews_count without backing review docs)
@@ -409,12 +517,24 @@ def test_review_creates_and_recomputes(artist_in_match):
 # ---------- Artist profile update ----------
 def test_artist_profile_update_role_gate(collector):
     _, tok = collector
-    r = requests.put(f"{BASE_URL}/api/artists/me",
-                     json={"bio": "x", "headline": "y", "location": "z",
-                           "specialties": [], "mediums": [], "styles": [],
-                           "price_low": 100, "price_high": 200,
-                           "availability": "Open", "portfolio": [], "years_experience": 1},
-                     headers=_auth(tok), timeout=15)
+    r = requests.put(
+        f"{BASE_URL}/api/artists/me",
+        json={
+            "bio": "x",
+            "headline": "y",
+            "location": "z",
+            "specialties": [],
+            "mediums": [],
+            "styles": [],
+            "price_low": 100,
+            "price_high": 200,
+            "availability": "Open",
+            "portfolio": [],
+            "years_experience": 1,
+        },
+        headers=_auth(tok),
+        timeout=15,
+    )
     assert r.status_code == 403
 
 
@@ -422,16 +542,30 @@ def test_artist_profile_update_success():
     aid, tok = _create_user("artist", "TEST_ArtistProfile")
     try:
         # First create artist profile via set-role (which creates empty)
-        requests.post(f"{BASE_URL}/api/auth/set-role", json={"role": "artist"},
-                      headers=_auth(tok), timeout=15)
-        r = requests.put(f"{BASE_URL}/api/artists/me",
-                         json={"bio": "TEST_bio updated", "headline": "TEST_headline",
-                               "location": "Test City", "specialties": ["TEST_spec"],
-                               "mediums": ["Oil"], "styles": ["Abstract"],
-                               "price_low": 800, "price_high": 4000,
-                               "availability": "Open", "portfolio": [],
-                               "years_experience": 3},
-                         headers=_auth(tok), timeout=15)
+        requests.post(
+            f"{BASE_URL}/api/auth/set-role",
+            json={"role": "artist"},
+            headers=_auth(tok),
+            timeout=15,
+        )
+        r = requests.put(
+            f"{BASE_URL}/api/artists/me",
+            json={
+                "bio": "TEST_bio updated",
+                "headline": "TEST_headline",
+                "location": "Test City",
+                "specialties": ["TEST_spec"],
+                "mediums": ["Oil"],
+                "styles": ["Abstract"],
+                "price_low": 800,
+                "price_high": 4000,
+                "availability": "Open",
+                "portfolio": [],
+                "years_experience": 3,
+            },
+            headers=_auth(tok),
+            timeout=15,
+        )
         assert r.status_code == 200
         a = r.json()
         assert a["bio"] == "TEST_bio updated"

@@ -17,6 +17,10 @@ export default function ProjectDetailPage() {
   const [prop, setProp] = useState({ price: 0, timeline_days: 30, concept: "" });
   const [submitting, setSubmitting] = useState(false);
   const [pricing, setPricing] = useState(null);
+  const [selectedArtistId, setSelectedArtistId] = useState("");
+  const [loadError, setLoadError] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [actionPending, setActionPending] = useState("");
   const msgsEnd = useRef(null);
 
   const isArtist = user?.role === "artist";
@@ -34,10 +38,27 @@ export default function ProjectDetailPage() {
       setProposals(props.data);
       setMessages(msgs.data);
       setEscrow(esc.data && Object.keys(esc.data).length ? esc.data : null);
-    } catch (e) { console.error(e); }
+      setLoadError("");
+      if (p.data.collector_id === user?.user_id && !selectedArtistId) {
+        setSelectedArtistId(
+          p.data.hired_artist_id ||
+          props.data.find((proposal) => proposal.status === "accepted")?.artist_id ||
+          props.data[0]?.artist_id ||
+          msgs.data[0]?.artist_id ||
+          ""
+        );
+      }
+    } catch (e) {
+      console.error(e);
+      setLoadError(e.response?.data?.detail || "Unable to load this project.");
+    }
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [id]);
+  useEffect(() => {
+    load();
+    // The polling effect below owns subsequent refreshes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
   useEffect(() => {
     const t = setInterval(load, 8000);
     return () => clearInterval(t);
@@ -47,51 +68,88 @@ export default function ProjectDetailPage() {
 
   const send = async () => {
     if (!text.trim()) return;
-    await http.post("/messages", { project_id: id, text });
-    setText("");
-    load();
+    if (isCollector && !selectedArtistId) return;
+    setActionPending("message");
+    setActionError("");
+    try {
+      await http.post("/messages", {
+        project_id: id,
+        artist_id: isCollector ? selectedArtistId : undefined,
+        text: text.trim(),
+      });
+      setText("");
+      await load();
+    } catch (e) {
+      setActionError(e.response?.data?.detail || "Your message could not be sent.");
+    } finally {
+      setActionPending("");
+    }
   };
 
   const submitProposal = async () => {
     setSubmitting(true);
+    setActionError("");
     try {
       await http.post("/proposals", { project_id: id, ...prop, references: [] });
       setShowProposalForm(false);
-      load();
-    } finally { setSubmitting(false); }
+      await load();
+    } catch (e) {
+      setActionError(e.response?.data?.detail || "Your proposal could not be submitted.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const accept = async (proposalId) => {
     if (!window.confirm("Accept this proposal? A 50% deposit will be held in escrow (mock).")) return;
-    await http.post(`/proposals/${proposalId}/accept`);
-    load();
+    await runAction("accept", () => http.post(`/proposals/${proposalId}/accept`));
   };
 
   const release = async () => {
     if (!window.confirm("Release all funds to the artist?")) return;
-    await http.post(`/projects/${id}/release-funds`);
-    load();
+    await runAction("release", () => http.post(`/projects/${id}/release-funds`));
   };
 
   const complete = async () => {
-    await http.post(`/projects/${id}/complete`);
-    load();
+    await runAction("complete", () => http.post(`/projects/${id}/complete`));
   };
 
   const aiPricing = async () => {
     setPricing("loading");
-    const { data } = await http.post("/ai/pricing", {
-      medium: project.medium, size: project.size,
-      description: project.description,
-    });
-    setPricing(data);
-    setProp((p) => ({ ...p, price: data.recommended }));
+    setActionError("");
+    try {
+      const { data } = await http.post("/ai/pricing", {
+        medium: project.medium, size: project.size,
+        description: project.description,
+      });
+      setPricing(data);
+      setProp((p) => ({ ...p, price: data.recommended }));
+    } catch (e) {
+      setPricing(null);
+      setActionError(e.response?.data?.detail || "Pricing guidance is unavailable. Enter a price manually.");
+    }
+  };
+
+  const runAction = async (name, action) => {
+    setActionPending(name);
+    setActionError("");
+    try {
+      await action();
+      await load();
+    } catch (e) {
+      setActionError(e.response?.data?.detail || "That action could not be completed.");
+    } finally {
+      setActionPending("");
+    }
   };
 
   if (!project) {
     return (
       <div className="min-h-screen bg-[#FAFAFA]">
-        <Navbar /><div className="p-16 overline text-neutral-500">Loading…</div>
+        <Navbar />
+        <div className="p-16 text-neutral-600">
+          {loadError || <span className="overline text-neutral-500">Loading…</span>}
+        </div>
       </div>
     );
   }
@@ -99,11 +157,11 @@ export default function ProjectDetailPage() {
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
       <Navbar />
-      <div className="max-w-[1400px] mx-auto px-6 sm:px-10 py-12" data-testid="project-detail">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-10 py-10 sm:py-12" data-testid="project-detail">
         {/* Header */}
         <div className="mb-10">
           <span className="overline text-neutral-500">{project.status?.replace("_", " ")}</span>
-          <h1 className="font-serif text-5xl tracking-tighter mt-3">{project.title}</h1>
+          <h1 className="font-serif text-4xl sm:text-5xl tracking-tighter mt-3">{project.title}</h1>
           <p className="text-neutral-700 mt-4 max-w-3xl font-serif text-lg italic leading-relaxed">
             "{project.ai_brief || project.description}"
           </p>
@@ -114,6 +172,12 @@ export default function ProjectDetailPage() {
             <span><strong className="text-neutral-900">Timeline</strong> · {project.timeline}</span>
           </div>
         </div>
+
+        {actionError && (
+          <div className="border border-neutral-300 bg-white p-4 mb-6 text-sm text-neutral-700" role="alert">
+            {actionError}
+          </div>
+        )}
 
         {/* Escrow status (if in progress) */}
         {escrow && (
@@ -127,13 +191,13 @@ export default function ProjectDetailPage() {
             </div>
             <div className="flex items-center gap-3">
               {isArtist && project.status === "in_progress" && (
-                <button data-testid="mark-complete" onClick={complete} className="btn-secondary">
-                  Mark artwork complete
+                <button data-testid="mark-complete" onClick={complete} disabled={Boolean(actionPending)} className="btn-secondary disabled:opacity-30">
+                  {actionPending === "complete" ? "Updating…" : "Mark artwork complete"}
                 </button>
               )}
               {isCollector && project.status === "awaiting_approval" && escrow.status === "deposit_held" && (
-                <button data-testid="release-funds" onClick={release} className="btn-primary">
-                  <CheckCircle2 size={14} /> Approve & release funds
+                <button data-testid="release-funds" onClick={release} disabled={Boolean(actionPending)} className="btn-primary disabled:opacity-30">
+                  <CheckCircle2 size={14} /> {actionPending === "release" ? "Releasing…" : "Approve & release funds"}
                 </button>
               )}
               {project.status === "completed" && (
@@ -145,15 +209,15 @@ export default function ProjectDetailPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-px bg-neutral-200 border border-neutral-200">
           {/* Proposals column */}
-          <div className="lg:col-span-2 bg-white p-8" data-testid="proposals-column">
-            <div className="flex items-center justify-between mb-6">
+          <div className="lg:col-span-2 bg-white p-5 sm:p-8" data-testid="proposals-column">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
               <h2 className="font-serif text-3xl tracking-tight">Proposals</h2>
               {isCollector && (
                 <Link to={`/project/${id}/matches`} className="overline text-neutral-500 hover:text-neutral-900">
                   View AI matches →
                 </Link>
               )}
-              {isArtist && !proposals.find((p) => p.artist_id === user.user_id) && project.status !== "completed" && (
+              {isArtist && !proposals.find((p) => p.artist_id === user.user_id) && project.status === "matched" && (
                 <button
                   data-testid="submit-proposal-btn"
                   onClick={() => { setShowProposalForm(true); aiPricing(); }}
@@ -169,7 +233,7 @@ export default function ProjectDetailPage() {
                 <span className="ai-badge"><Sparkles size={12} /> AI pricing assistant</span>
                 {pricing === "loading" && <p className="mt-3 text-sm text-neutral-500"><Loader2 className="inline animate-spin" size={12} /> Suggesting prices…</p>}
                 {pricing && typeof pricing === "object" && (
-                  <div className="grid grid-cols-3 gap-px bg-neutral-200 border border-neutral-200 mt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-neutral-200 border border-neutral-200 mt-4">
                     {["low", "recommended", "premium"].map((k) => (
                       <button
                         key={k}
@@ -183,7 +247,7 @@ export default function ProjectDetailPage() {
                     ))}
                   </div>
                 )}
-                <div className="grid grid-cols-2 gap-4 mt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                   <div>
                     <label className="overline">Price (USD)</label>
                     <input
@@ -230,7 +294,7 @@ export default function ProjectDetailPage() {
                 {proposals.map((p) => (
                   <div key={p.proposal_id} className="bg-white p-6" data-testid={`proposal-${p.proposal_id}`}
                     style={p.status === "accepted" ? { borderTop: "2px solid #C1A68D" } : {}}>
-                    <div className="flex justify-between items-start">
+                    <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
                       <div>
                         <h4 className="font-serif text-xl">{p.artist?.name || p.artist_name}</h4>
                         <p className="overline text-neutral-500 mt-1">{p.status}</p>
@@ -245,7 +309,8 @@ export default function ProjectDetailPage() {
                       <button
                         data-testid={`accept-${p.proposal_id}`}
                         onClick={() => accept(p.proposal_id)}
-                        className="btn-primary !py-2 !px-4 mt-4 text-xs"
+                        disabled={Boolean(actionPending)}
+                        className="btn-primary !py-2 !px-4 mt-4 text-xs disabled:opacity-30"
                       >
                         Hire {p.artist?.name?.split(" ")[0] || "this artist"}
                       </button>
@@ -257,18 +322,39 @@ export default function ProjectDetailPage() {
           </div>
 
           {/* Messages column */}
-          <div className="bg-white p-8 flex flex-col" data-testid="messages-column" style={{ minHeight: 500 }}>
+          <div className="bg-white p-5 sm:p-8 flex flex-col" data-testid="messages-column" style={{ minHeight: 500 }}>
             <h2 className="font-serif text-3xl tracking-tight mb-6">Messages</h2>
+            {isCollector && (
+              <div className="mb-5">
+                <label className="overline" htmlFor="message-thread">Conversation</label>
+                <select
+                  id="message-thread"
+                  data-testid="message-thread"
+                  className="input-luxury mt-2"
+                  value={selectedArtistId}
+                  onChange={(e) => setSelectedArtistId(e.target.value)}
+                >
+                  <option value="">Choose an artist</option>
+                  {proposals.map((proposal) => (
+                    <option key={proposal.artist_id} value={proposal.artist_id}>
+                      {proposal.artist?.name || proposal.artist_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div className="flex-1 overflow-y-auto space-y-5 scroll-hide">
-              {messages.length === 0 && (
+              {messages.filter((message) => !isCollector || message.artist_id === selectedArtistId).length === 0 && (
                 <p className="text-sm text-neutral-500">No messages yet. Start the conversation.</p>
               )}
-              {messages.map((m) => (
+              {messages
+                .filter((message) => !isCollector || message.artist_id === selectedArtistId)
+                .map((m) => (
                 <div key={m.message_id} className="" data-testid={`message-${m.message_id}`}>
                   <div className="overline text-neutral-500">{m.sender_name} · {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
                   <p className="text-sm text-neutral-800 mt-1 leading-relaxed">{m.text}</p>
                 </div>
-              ))}
+                ))}
               <div ref={msgsEnd} />
             </div>
             <div className="border-t border-neutral-200 pt-4 mt-4 flex gap-2">
@@ -280,7 +366,12 @@ export default function ProjectDetailPage() {
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && send()}
               />
-              <button data-testid="message-send" onClick={send} className="btn-primary !px-4">
+              <button
+                data-testid="message-send"
+                onClick={send}
+                disabled={Boolean(actionPending) || !text.trim() || (isCollector && !selectedArtistId)}
+                className="btn-primary !px-4 disabled:opacity-30"
+              >
                 <Send size={14} />
               </button>
             </div>
@@ -308,7 +399,7 @@ function ReviewForm({ projectId, artistId, onDone }) {
   return (
     <div className="mt-12 border border-neutral-200 bg-white p-8" data-testid="review-form">
       <h2 className="font-serif text-3xl">Leave a review</h2>
-      <div className="grid grid-cols-3 gap-6 mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-6">
         {["communication", "quality", "timeliness"].map((k) => (
           <div key={k}>
             <span className="overline">{k}</span>

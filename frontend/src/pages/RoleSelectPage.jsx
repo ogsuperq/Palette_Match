@@ -4,19 +4,27 @@ import { http } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
 import Navbar from "@/components/Navbar";
 import { Palette, Brush } from "lucide-react";
+import { consumeAuthReturn } from "@/lib/auth";
 
 export default function RoleSelectPage() {
   const { refresh } = useAuth();
   const nav = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const choose = async (role) => {
     setLoading(true);
+    setError("");
     try {
       await http.post("/auth/set-role", { role });
       await refresh();
       if (role === "artist") nav("/onboard-artist");
-      else nav("/intake");
+      else {
+        const returnPath = consumeAuthReturn();
+        nav(returnPath === "/dashboard" ? "/intake" : returnPath);
+      }
+    } catch (e) {
+      setError(e.response?.data?.detail || "Your account role could not be saved.");
     } finally {
       setLoading(false);
     }
@@ -29,6 +37,11 @@ export default function RoleSelectPage() {
         <span className="overline text-neutral-500">Welcome to Palette Match</span>
         <h1 className="font-serif text-5xl tracking-tighter mt-4">How will you use Palette Match?</h1>
         <p className="text-neutral-600 mt-4">You can switch later. We just want to tailor the experience.</p>
+        {error && (
+          <div className="border border-neutral-300 bg-white p-4 mt-6 text-sm text-neutral-700" role="alert">
+            {error}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-neutral-200 border border-neutral-200 mt-12">
           <button
