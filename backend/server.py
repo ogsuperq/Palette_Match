@@ -1256,11 +1256,13 @@ allowed_origins = [
     for origin in os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(",")
     if origin.strip()
 ]
+allowed_origin_regex = os.environ.get("CORS_ORIGIN_REGEX") or None
 
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
     allow_origins=allowed_origins,
+    allow_origin_regex=allowed_origin_regex,
     allow_methods=["*"],
     allow_headers=["*"],
 )
