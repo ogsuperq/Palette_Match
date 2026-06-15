@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { http } from "@/lib/api";
 import Navbar from "@/components/Navbar";
 import { Search } from "lucide-react";
+import { isDemoModeEnabled, listDemoArtists } from "@/lib/demoMode";
 
 export default function ArtistsBrowsePage() {
   const [artists, setArtists] = useState([]);
@@ -10,6 +11,10 @@ export default function ArtistsBrowsePage() {
   const [medium, setMedium] = useState("");
 
   const load = async () => {
+    if (isDemoModeEnabled()) {
+      setArtists(listDemoArtists({ q, medium }));
+      return;
+    }
     const params = {};
     if (q) params.q = q;
     if (medium) params.medium = medium;

@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { http } from "@/lib/api";
 import Navbar from "@/components/Navbar";
 import { Sparkles, Loader2, ArrowRight } from "lucide-react";
+import { createDemoProposal, getDemoProjectBundle, isDemoProjectId } from "@/lib/demoMode";
 
 export default function MatchesPage() {
   const { id } = useParams();
@@ -11,10 +12,22 @@ export default function MatchesPage() {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const isDemoProject = isDemoProjectId(id);
 
   const loadMatches = async () => {
     setLoading(true);
     setError("");
+    if (isDemoProject) {
+      const bundle = getDemoProjectBundle(id);
+      if (!bundle) {
+        setError("We could not load your artist matches.");
+      } else {
+        setProject(bundle.project);
+        setMatches(bundle.matches);
+      }
+      setLoading(false);
+      return;
+    }
     try {
       const [p, m] = await Promise.all([
         http.get(`/projects/${id}`),
@@ -33,6 +46,18 @@ export default function MatchesPage() {
   useEffect(() => {
     let mounted = true;
     (async () => {
+      if (isDemoProject) {
+        const bundle = getDemoProjectBundle(id);
+        if (!mounted) return;
+        if (!bundle) {
+          setError("We could not load your artist matches.");
+        } else {
+          setProject(bundle.project);
+          setMatches(bundle.matches);
+        }
+        setLoading(false);
+        return;
+      }
       try {
         const [p, m] = await Promise.all([
           http.get(`/projects/${id}`),
@@ -49,7 +74,14 @@ export default function MatchesPage() {
       }
     })();
     return () => { mounted = false; };
-  }, [id]);
+  }, [id, isDemoProject]);
+
+  const reviewProposal = (artistId) => {
+    if (isDemoProject) {
+      createDemoProposal(id, artistId);
+    }
+    nav(`/project/${id}`);
+  };
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
@@ -135,13 +167,13 @@ export default function MatchesPage() {
                       >
                         View profile
                       </Link>
-                      <Link
-                        to={`/project/${id}`}
+                      <button
+                        onClick={() => reviewProposal(m.artist_id)}
                         data-testid={`see-proposals-${m.artist_id}`}
                         className="btn-primary !py-2 !px-4 text-xs"
                       >
-                        See proposals <ArrowRight size={12} />
-                      </Link>
+                        See proposal <ArrowRight size={12} />
+                      </button>
                     </div>
                   </div>
                 </article>

@@ -4,10 +4,13 @@ import { http } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
 import Navbar from "@/components/Navbar";
 import { Plus, ArrowRight } from "lucide-react";
+import { isDemoModeEnabled, listDemoProjects } from "@/lib/demoMode";
 
 const STATUS_LABEL = {
   matching: "Matching",
   matched: "Awaiting proposals",
+  artist_selected: "Artist selected",
+  deposit_pending: "Deposit pending",
   in_progress: "In progress",
   completed: "Completed",
 };
@@ -23,6 +26,11 @@ export default function DashboardPage() {
     if (!user) return;
     setProjectsLoading(true);
     setError("");
+    if (isDemoModeEnabled()) {
+      setProjects(listDemoProjects());
+      setProjectsLoading(false);
+      return;
+    }
     try {
       const { data } = await http.get("/projects");
       setProjects(data);

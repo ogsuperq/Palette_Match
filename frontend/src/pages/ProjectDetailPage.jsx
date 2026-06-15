@@ -4,6 +4,14 @@ import { http } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
 import Navbar from "@/components/Navbar";
 import { Send, CheckCircle2, Sparkles, Loader2 } from "lucide-react";
+import {
+  acceptDemoProposal,
+  advanceDemoProject,
+  createDemoMessage,
+  createDemoProposal,
+  getDemoProjectBundle,
+  isDemoProjectId,
+} from "@/lib/demoMode";
 
 export default function ProjectDetailPage() {
   const { id } = useParams();
@@ -21,12 +29,37 @@ export default function ProjectDetailPage() {
   const [loadError, setLoadError] = useState("");
   const [actionError, setActionError] = useState("");
   const [actionPending, setActionPending] = useState("");
+  const [matches, setMatches] = useState([]);
   const msgsEnd = useRef(null);
+  const isDemoProject = isDemoProjectId(id);
 
   const isArtist = user?.role === "artist";
   const isCollector = project && project.collector_id === user?.user_id;
 
   const load = async () => {
+    if (isDemoProject) {
+      const bundle = getDemoProjectBundle(id);
+      if (!bundle) {
+        setLoadError("Unable to load this project.");
+        return;
+      }
+      setProject(bundle.project);
+      setProposals(bundle.proposals);
+      setMessages(bundle.messages);
+      setEscrow(bundle.escrow);
+      setMatches(bundle.matches);
+      setLoadError("");
+      if (!selectedArtistId) {
+        setSelectedArtistId(
+          bundle.project.hired_artist_id ||
+          bundle.proposals.find((proposal) => proposal.status === "accepted")?.artist_id ||
+          bundle.proposals[0]?.artist_id ||
+          bundle.matches[0]?.artist_id ||
+          ""
+        );
+      }
+      return;
+    }
     try {
       const [p, props, msgs, esc] = await Promise.all([
         http.get(`/projects/${id}`),
@@ -71,6 +104,13 @@ export default function ProjectDetailPage() {
     if (isCollector && !selectedArtistId) return;
     setActionPending("message");
     setActionError("");
+    if (isDemoProject) {
+      createDemoMessage(id, selectedArtistId, text.trim());
+      setText("");
+      await load();
+      setActionPending("");
+      return;
+    }
     try {
       await http.post("/messages", {
         project_id: id,
@@ -89,6 +129,13 @@ export default function ProjectDetailPage() {
   const submitProposal = async () => {
     setSubmitting(true);
     setActionError("");
+    if (isDemoProject) {
+      createDemoProposal(id, selectedArtistId || matches[0]?.artist_id, prop);
+      setShowProposalForm(false);
+      await load();
+      setSubmitting(false);
+      return;
+    }
     try {
       await http.post("/proposals", { project_id: id, ...prop, references: [] });
       setShowProposalForm(false);
@@ -102,21 +149,57 @@ export default function ProjectDetailPage() {
 
   const accept = async (proposalId) => {
     if (!window.confirm("Accept this proposal? A 50% deposit will be held in escrow (mock).")) return;
+    if (isDemoProject) {
+      await runAction("accept", async () => acceptDemoProposal(id, proposalId));
+      return;
+    }
     await runAction("accept", () => http.post(`/proposals/${proposalId}/accept`));
   };
 
   const release = async () => {
+    if (isDemoProject && ["artist_selected", "deposit_pending"].includes(project.status)) {
+      const nextStatus = project.status === "artist_selected" ? "deposit_pending" : "in_progress";
+      await runAction("deposit", async () => advanceDemoProject(id, nextStatus));
+      return;
+    }
     if (!window.confirm("Release all funds to the artist?")) return;
+    if (isDemoProject) {
+      await runAction("release", async () => advanceDemoProject(id, "completed"));
+      return;
+    }
     await runAction("release", () => http.post(`/projects/${id}/release-funds`));
   };
 
   const complete = async () => {
+    if (isDemoProject) {
+      await runAction("complete", async () => advanceDemoProject(id, "completed"));
+      return;
+    }
     await runAction("complete", () => http.post(`/projects/${id}/complete`));
   };
 
   const aiPricing = async () => {
     setPricing("loading");
     setActionError("");
+    if (isDemoProject) {
+      const artist = matches.find((match) => match.artist_id === selectedArtistId)?.artist || matches[0]?.artist;
+      const recommended = Math.min(
+        Math.max(Math.round((project.budget || artist?.price_low || 2500) * 0.92), artist?.price_low || 1000),
+        artist?.price_high || 10000
+      );
+      const demoPricing = {
+        low: Math.max(recommended - 500, artist?.price_low || 1000),
+        recommended,
+        premium: Math.min(recommended + 900, artist?.price_high || recommended + 900),
+      };
+      setPricing(demoPricing);
+      setProp((p) => ({
+        ...p,
+        price: recommended,
+        concept: p.concept || "A composed original work shaped around the room, palette, and story in the brief.",
+      }));
+      return;
+    }
     try {
       const { data } = await http.post("/ai/pricing", {
         medium: project.medium, size: project.size,
@@ -129,6 +212,11 @@ export default function ProjectDetailPage() {
       setActionError(e.response?.data?.detail || "Pricing guidance is unavailable. Enter a price manually.");
     }
   };
+
+  const artistOptions = isDemoProject
+    ? matches.map((match) => ({ artist_id: match.artist_id, artist: match.artist }))
+    : proposals;
+  const hasProposalForSelectedArtist = proposals.some((proposal) => proposal.artist_id === selectedArtistId);
 
   const runAction = async (name, action) => {
     setActionPending(name);
@@ -200,6 +288,11 @@ export default function ProjectDetailPage() {
                   <CheckCircle2 size={14} /> {actionPending === "release" ? "Releasing…" : "Approve & release funds"}
                 </button>
               )}
+              {isCollector && isDemoProject && ["artist_selected", "deposit_pending"].includes(project.status) && escrow.status === "deposit_pending" && (
+                <button data-testid="release-funds" onClick={release} disabled={Boolean(actionPending)} className="btn-primary disabled:opacity-30">
+                  <CheckCircle2 size={14} /> {actionPending === "deposit" ? "Updating…" : project.status === "artist_selected" ? "Continue to deposit" : "Confirm deposit"}
+                </button>
+              )}
               {project.status === "completed" && (
                 <span className="ai-badge">Completed</span>
               )}
@@ -216,6 +309,15 @@ export default function ProjectDetailPage() {
                 <Link to={`/project/${id}/matches`} className="overline text-neutral-500 hover:text-neutral-900">
                   View AI matches →
                 </Link>
+              )}
+              {isDemoProject && isCollector && selectedArtistId && !hasProposalForSelectedArtist && project.status === "matched" && (
+                <button
+                  data-testid="submit-proposal-btn"
+                  onClick={() => { setShowProposalForm(true); aiPricing(); }}
+                  className="btn-primary !py-2 !px-4"
+                >
+                  Submit proposal
+                </button>
               )}
               {isArtist && !proposals.find((p) => p.artist_id === user.user_id) && project.status === "matched" && (
                 <button
@@ -335,12 +437,21 @@ export default function ProjectDetailPage() {
                   onChange={(e) => setSelectedArtistId(e.target.value)}
                 >
                   <option value="">Choose an artist</option>
-                  {proposals.map((proposal) => (
-                    <option key={proposal.artist_id} value={proposal.artist_id}>
-                      {proposal.artist?.name || proposal.artist_name}
+                  {artistOptions.map((option) => (
+                    <option key={option.artist_id} value={option.artist_id}>
+                      {option.artist?.name || option.artist_name}
                     </option>
                   ))}
                 </select>
+                {isDemoProject && selectedArtistId && !hasProposalForSelectedArtist && (
+                  <button
+                    data-testid="message-proposal-shortcut"
+                    onClick={() => { setShowProposalForm(true); aiPricing(); }}
+                    className="btn-secondary !py-2 !px-4 mt-3 text-xs"
+                  >
+                    Submit proposal for this artist
+                  </button>
+                )}
               </div>
             )}
             <div className="flex-1 overflow-y-auto space-y-5 scroll-hide">

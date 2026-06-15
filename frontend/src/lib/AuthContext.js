@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { http } from "./api";
+import { DEMO_USER, isDemoModeEnabled } from "./demoMode";
 
 const AuthCtx = createContext(null);
 
@@ -8,6 +9,11 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const checkAuth = useCallback(async () => {
+    if (isDemoModeEnabled()) {
+      setUser(DEMO_USER);
+      setLoading(false);
+      return;
+    }
     try {
       const { data } = await http.get("/auth/me");
       setUser(data);
@@ -29,6 +35,11 @@ export const AuthProvider = ({ children }) => {
   }, [checkAuth]);
 
   const logout = async () => {
+    if (isDemoModeEnabled()) {
+      setUser(DEMO_USER);
+      window.location.href = "/";
+      return;
+    }
     try {
       await http.post("/auth/logout");
     } catch {}
