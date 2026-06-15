@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { http } from "@/lib/api";
 import Navbar from "@/components/Navbar";
+import { getDemoArtist, getDemoReviews, isDemoModeEnabled } from "@/lib/demoMode";
 
 export default function ArtistProfilePage() {
   const { userId } = useParams();
@@ -9,6 +10,11 @@ export default function ArtistProfilePage() {
   const [reviews, setReviews] = useState([]);
 
   useEffect(() => {
+    if (isDemoModeEnabled()) {
+      setArtist(getDemoArtist(userId));
+      setReviews(getDemoReviews(userId));
+      return;
+    }
     http.get(`/artists/${userId}`).then((r) => setArtist(r.data)).catch(() => {});
     http.get(`/artists/${userId}/reviews`).then((r) => setReviews(r.data)).catch(() => {});
   }, [userId]);

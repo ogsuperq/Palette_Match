@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import Navbar from "@/components/Navbar";
 import { ArrowRight, ArrowLeft, Sparkles, Loader2 } from "lucide-react";
 import { startLogin } from "@/lib/auth";
+import { createDemoProject, isDemoModeEnabled } from "@/lib/demoMode";
 
 const MEDIUMS = ["Oil", "Acrylic", "Watercolor", "Photography", "Digital", "Mixed media"];
 const STYLES = ["Abstract", "Impressionist", "Realist", "Minimalist", "Contemporary", "Classical", "Botanical", "Coastal"];
@@ -58,6 +59,14 @@ export default function IntakeWizard() {
   };
 
   const submit = async () => {
+    if (isDemoModeEnabled()) {
+      setSubmitting(true);
+      setError("");
+      const project = createDemoProject(form);
+      sessionStorage.removeItem(DRAFT_KEY);
+      nav(`/project/${project.project_id}/matches`);
+      return;
+    }
     if (!user) {
       sessionStorage.setItem(DRAFT_KEY, JSON.stringify(form));
       startLogin("/intake");
