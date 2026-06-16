@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
-import { http } from "@/lib/api";
+import { API } from "@/lib/api";
 
 const STEPS = [
   {
@@ -40,10 +40,19 @@ export default function LandingPage() {
 
     setStatus("submitting");
     try {
-      await http.post("/waitlist", {
-        email: normalizedEmail,
-        source_page: window.location.pathname || "/",
+      const response = await fetch(`${API}/waitlist`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: normalizedEmail,
+          source_page: window.location.pathname || "/",
+        }),
       });
+      if (!response.ok) {
+        throw new Error("Waitlist submission failed");
+      }
       setEmail("");
       setStatus("success");
     } catch {
