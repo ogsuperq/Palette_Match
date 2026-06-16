@@ -19,6 +19,7 @@ db = client[os.environ['DB_NAME']]
 
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 WAITLIST_ADMIN_TOKEN = os.environ.get("WAITLIST_ADMIN_TOKEN")
+_LLM_UNAVAILABLE_LOGGED = False
 
 app = FastAPI()
 api = APIRouter(prefix="/api")
@@ -68,8 +69,23 @@ async def require_user(session_token: Optional[str] = Cookie(default=None),
 # ---------- LLM helpers ----------
 async def llm_json(system: str, prompt: str, session_id: str) -> Dict[str, Any]:
     """Call Claude Sonnet 4.5 and parse JSON response. Returns {} on failure."""
+    global _LLM_UNAVAILABLE_LOGGED
+
+    if not EMERGENT_LLM_KEY:
+        if not _LLM_UNAVAILABLE_LOGGED:
+            logger.warning("AI integrations disabled: EMERGENT_LLM_KEY is not configured")
+            _LLM_UNAVAILABLE_LOGGED = True
+        return {}
+
     try:
         from emergentintegrations.llm.chat import LlmChat, UserMessage
+    except ImportError:
+        if not _LLM_UNAVAILABLE_LOGGED:
+            logger.warning("AI integrations disabled: emergentintegrations package is not installed")
+            _LLM_UNAVAILABLE_LOGGED = True
+        return {}
+
+    try:
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
             session_id=session_id,
