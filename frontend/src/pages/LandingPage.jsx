@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
-
-const WAITLIST_KEY = "palette_match_beta_waitlist";
+import { http } from "@/lib/api";
 
 const STEPS = [
   {
@@ -26,18 +25,11 @@ const STEPS = [
   },
 ];
 
-function storeWaitlistEmail(email) {
-  const existing = JSON.parse(localStorage.getItem(WAITLIST_KEY) || "[]");
-  if (!existing.includes(email)) {
-    localStorage.setItem(WAITLIST_KEY, JSON.stringify([...existing, email]));
-  }
-}
-
 export default function LandingPage() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("idle");
 
-  const submitWaitlist = (event) => {
+  const submitWaitlist = async (event) => {
     event.preventDefault();
     const normalizedEmail = email.trim().toLowerCase();
 
@@ -46,9 +38,17 @@ export default function LandingPage() {
       return;
     }
 
-    storeWaitlistEmail(normalizedEmail);
-    setEmail("");
-    setStatus("success");
+    setStatus("submitting");
+    try {
+      await http.post("/waitlist", {
+        email: normalizedEmail,
+        source_page: window.location.pathname || "/",
+      });
+      setEmail("");
+      setStatus("success");
+    } catch {
+      setStatus("submit-error");
+    }
   };
 
   return (
@@ -104,8 +104,8 @@ export default function LandingPage() {
                 required
                 aria-describedby="waitlist-message"
               />
-              <button type="submit">
-                Join the beta waitlist <ArrowRight size={16} aria-hidden="true" />
+              <button type="submit" disabled={status === "submitting"}>
+                {status === "submitting" ? "Joining…" : "Join the beta waitlist"} <ArrowRight size={16} aria-hidden="true" />
               </button>
             </div>
             <p
@@ -119,6 +119,7 @@ export default function LandingPage() {
                   touch as beta access opens.
                 </>
               )}
+              {status === "submit-error" && "We could not save your email. Please try again in a moment."}
               {status === "error" && "Enter a valid email address to join the waitlist."}
               {status === "idle" && "Early access updates only. No noise."}
             </p>

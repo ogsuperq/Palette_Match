@@ -5,7 +5,8 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os, uuid, logging, json, asyncio, httpx, re
 from pathlib import Path
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
+from pymongo.errors import DuplicateKeyError
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone, timedelta
 
@@ -17,6 +18,7 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
+WAITLIST_ADMIN_TOKEN = os.environ.get("WAITLIST_ADMIN_TOKEN")
 
 app = FastAPI()
 api = APIRouter(prefix="/api")
@@ -149,6 +151,11 @@ class PricingBody(BaseModel):
     medium: str
     size: str
     description: str
+
+
+class WaitlistCreate(BaseModel):
+    email: EmailStr
+    source_page: Optional[str] = ""
 
 
 # ---------- Auth ----------
@@ -841,6 +848,32 @@ async def seed():
     return {"inserted": inserted, "total": len(SEED_ARTISTS)}
 
 
+@api.post("/waitlist")
+async def join_waitlist(body: WaitlistCreate, request: Request):
+    normalized_email = body.email.strip().lower()
+    now = iso(utcnow())
+    lead = {
+        "email": body.email,
+        "normalized_email": normalized_email,
+        "created_at": now,
+        "source_page": body.source_page or "/",
+        "user_agent": request.headers.get("user-agent", ""),
+    }
+    try:
+        await db.waitlist_leads.insert_one(lead)
+    except DuplicateKeyError:
+        return {"ok": True, "duplicate": True}
+    return {"ok": True, "duplicate": False}
+
+
+@api.get("/waitlist/count")
+async def waitlist_count(x_admin_token: Optional[str] = Header(default=None)):
+    if not WAITLIST_ADMIN_TOKEN or x_admin_token != WAITLIST_ADMIN_TOKEN:
+        raise HTTPException(status_code=404)
+    count = await db.waitlist_leads.count_documents({})
+    return {"count": count}
+
+
 @api.get("/")
 async def root():
     return {"app": "Palette Match", "status": "ok"}
@@ -859,6 +892,7 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
+    await db.waitlist_leads.create_index("normalized_email", unique=True)
     # Auto-seed artists on first boot
     count = await db.artists.count_documents({})
     if count == 0:
