@@ -77,12 +77,18 @@ const Traction = () => (
 
 // ---------- Slide 10: Founder ----------
 const Founder = () => (
-  <SlideShell testId="slide-10">
+  <SlideShell testId="slide-10" className="founder-slide">
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
       <div {...r(0)} className="reveal lg:col-span-4">
         <div className="gallery-frame p-3">
           <div className="bg-gradient-to-br from-[#efece6] to-[#ddd7cc] aspect-[4/5] flex items-center justify-center">
-            <span className="text-xs uppercase tracking-[0.2em] text-[#a99c7e]">Headshot</span>
+            <img
+              src="/team/founder-headshot.jpg"
+              alt="Suzanne Chancy, founder of Palette Match"
+              className="h-full w-full object-cover"
+              style={{ objectPosition: "center top" }}
+              decoding="async"
+            />
           </div>
         </div>
         <div className="brass-plaque mt-4 px-4 py-1.5 text-[10px] font-medium uppercase inline-block">Suzanne Chancy · Founder</div>
