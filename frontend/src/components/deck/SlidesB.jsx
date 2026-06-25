@@ -89,7 +89,7 @@ const Founder = () => (
       </div>
       <div className="lg:col-span-8">
         <div {...r(1)} className="reveal"><Overline>Founder</Overline></div>
-        <h2 {...r(2)} className={`reveal mt-6 text-3xl sm:text-4xl ${H1}`}>A founder native to art, luxury, and presentation.</h2>
+        <h2 {...r(2)} className={`reveal mt-6 max-w-[18rem] sm:max-w-none text-3xl sm:text-4xl ${H1}`}>A founder who understands both sides of the commission.</h2>
         <p {...r(3)} className="reveal mt-7 max-w-2xl text-lg font-light leading-relaxed text-[#5c5c5c]">
           Suzanne Chancy has worked across luxury retail, visual merchandising, art
           education, and design, where taste, trust, client presentation, and vendor
@@ -97,9 +97,9 @@ const Founder = () => (
         </p>
         <div {...r(4)} className="reveal mt-8 grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-2xl">
           {[
-            ["Taste", "Understands how high-end clients evaluate visual work."],
-            ["Supply", "Can speak credibly to artists and protect their economics."],
-            ["Workflow", "Has seen where sourcing, approvals, and handoffs break."],
+            ["Buyer Insight", "Understands how high-end clients evaluate visual work and make purchasing decisions."],
+            ["Artist Trust", "Can engage artists credibly while protecting creative and financial interests."],
+            ["Operational Experience", "Has firsthand experience where sourcing, approvals, and project handoffs fail."],
           ].map(([t, d]) => (
             <div key={t}>
               <div className="gold-rule" />
