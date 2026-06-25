@@ -200,16 +200,19 @@ const Market = () => (
         </div>
       </div>
       <div {...r(2)} className="reveal flex justify-center">
-        <svg viewBox="0 0 420 420" className="w-full max-w-md">
+        <svg viewBox="0 0 480 420" className="w-full max-w-md overflow-visible" aria-label="Market opportunity rings">
           {[200, 140, 78].map((rad, i) => (
-            <circle key={rad} cx="210" cy="210" r={rad} fill="none"
+            <circle key={rad} cx="240" cy="210" r={rad} fill="none"
               stroke={i === 2 ? "#b08d2b" : "rgba(0,0,0,0.18)"} strokeWidth={i === 2 ? 1.6 : 1} />
           ))}
-          <text x="210" y="34" textAnchor="middle" className="font-sans-pm" fontSize="11" letterSpacing="2" fill="#8a8a8a">COMMERCIAL + CORPORATE</text>
-          <text x="210" y="104" textAnchor="middle" fontSize="11" letterSpacing="2" fill="#8a8a8a">HOSPITALITY + LUXURY RESI</text>
-          <text x="210" y="196" textAnchor="middle" className="font-serif-pm" fontSize="15" fill="#b08d2b">50 Active</text>
-          <text x="210" y="216" textAnchor="middle" className="font-serif-pm" fontSize="15" fill="#b08d2b">Interior</text>
-          <text x="210" y="236" textAnchor="middle" className="font-serif-pm" fontSize="15" fill="#b08d2b">Designers</text>
+          <text x="240" y="34" textAnchor="middle" className="font-sans-pm" fontSize="11" letterSpacing="2" fill="#8a8a8a">CORPORATE ART PROCUREMENT</text>
+          <text x="240" y="96" textAnchor="middle" className="font-sans-pm" fontSize="10.5" letterSpacing="1.6" fill="#8a8a8a">
+            <tspan x="240">HOSPITALITY +</tspan>
+            <tspan x="240" dy="15">LUXURY RESIDENTIAL</tspan>
+          </text>
+          <text x="240" y="196" textAnchor="middle" className="font-serif-pm" fontSize="15" fill="#b08d2b">50 Active</text>
+          <text x="240" y="216" textAnchor="middle" className="font-serif-pm" fontSize="15" fill="#b08d2b">Interior</text>
+          <text x="240" y="236" textAnchor="middle" className="font-serif-pm" fontSize="15" fill="#b08d2b">Designers</text>
         </svg>
       </div>
     </div>
