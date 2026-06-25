@@ -149,26 +149,26 @@ const Roadmap = () => (
 // ---------- Slide 12: The Ask ----------
 const Ask = () => (
   <SlideShell testId="slide-12" light className="items-center text-center">
-    <div {...r(0)} className="reveal"><Overline>The Ask</Overline></div>
+    <div {...r(0)} className="reveal"><Overline>The Next Inflection Point</Overline></div>
     <div {...r(1)} className="reveal mt-6 font-serif-pm font-light text-[#121212] leading-none text-6xl sm:text-7xl lg:text-8xl">
       $250<span className="text-[#b08d2b]">K</span>
     </div>
-    <p {...r(2)} className="reveal mt-5 text-sm uppercase tracking-[0.22em] text-[#8a8a8a]">Pre-seed to prove paid designer-led commissions</p>
+    <p {...r(2)} className="reveal mt-5 text-sm uppercase tracking-[0.22em] text-[#8a8a8a]">To reach the first 25 paid commissions</p>
     <div className="mt-14 grid grid-cols-1 md:grid-cols-2 gap-12 max-w-3xl mx-auto text-left">
       <div {...r(3)} className="reveal">
-        <h3 className="font-serif-pm text-xl text-[#1f1f1f]">Use of Funds</h3>
+        <h3 className="font-serif-pm text-xl text-[#1f1f1f]">What This Unlocks</h3>
         <div className="thin-divider my-4" />
         <ul className="space-y-2 text-sm font-light text-[#5c5c5c]">
-          {["45% product + AI matching", "30% designer acquisition", "15% artist supply", "10% infrastructure + analytics"].map((x) => (
-            <li key={x} className="flex gap-2"><span className="text-[#b08d2b]">—</span>{x}</li>
+          {["50 active interior designers", "100 vetted artists", "25 paid commissions", "$125K GMV", "Repeat purchase data"].map((x) => (
+            <li key={x} className={`flex gap-2 ${x === "25 paid commissions" || x === "$125K GMV" ? "font-medium text-[#8a6f22]" : ""}`}><span className="text-[#b08d2b]">—</span>{x}</li>
           ))}
         </ul>
       </div>
       <div {...r(4)} className="reveal">
-        <h3 className="font-serif-pm text-xl text-[#1f1f1f]">Milestone Targets</h3>
+        <h3 className="font-serif-pm text-xl text-[#1f1f1f]">What We Learn</h3>
         <div className="thin-divider my-4" />
         <ul className="space-y-2 text-sm font-light text-[#5c5c5c]">
-          {["50 active interior designers", "100 vetted artists", "25 paid commissions", "$125K GMV at $5K AOV"].map((x) => (
+          {["Designer acquisition cost", "Commission conversion rates", "Repeat purchase behavior", "Marketplace take-rate validation", "Seed-scale economics"].map((x) => (
             <li key={x} className="flex gap-2"><span className="text-[#b08d2b]">—</span>{x}</li>
           ))}
         </ul>
