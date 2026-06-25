@@ -1,0 +1,275 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..700&family=Inter:wght@300;400;500;600&display=swap');
+
+.investor-deck {
+  --pm-gold: #b08d2b;
+  --pm-gold-soft: #d4af37;
+  --pm-charcoal: #2c2c2c;
+  --pm-ink: #121212;
+  --pm-muted: #8a8a8a;
+  color: var(--pm-ink);
+  font-family: 'Inter', sans-serif;
+}
+
+.investor-deck .font-serif-pm { font-family: 'Playfair Display', serif; }
+.investor-deck .font-sans-pm { font-family: 'Inter', sans-serif; }
+
+.investor-deck .slide-root {
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+}
+
+@keyframes pmReveal {
+  from { opacity: 0; transform: translateY(16px); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+.investor-deck .reveal {
+  opacity: 0;
+  animation: pmReveal 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.investor-deck .no-anim .reveal {
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+  animation: none !important;
+}
+
+.investor-deck .thin-divider {
+  height: 1px;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.10);
+}
+
+.investor-deck .gold-rule {
+  height: 2px;
+  width: 56px;
+  background: var(--pm-gold);
+}
+
+.investor-deck .gallery-frame {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 30px 60px -25px rgba(0, 0, 0, 0.18);
+}
+
+.investor-deck .brass-plaque {
+  background: linear-gradient(180deg, #e9d8a6, #c9a84a);
+  color: #3a2f12;
+  letter-spacing: 0.12em;
+}
+
+.investor-deck .arch-light {
+  background:
+    radial-gradient(60% 50% at 80% 0%, rgba(176, 141, 43, 0.07), transparent 70%),
+    radial-gradient(50% 40% at 0% 100%, rgba(0, 0, 0, 0.03), transparent 70%);
+}
+
+.investor-deck .slide-root::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.investor-deck .pdf-page {
+  width: 1280px;
+  height: 720px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.investor-deck button {
+  font-family: 'Inter', sans-serif;
+}
+
+.investor-deck .flip-card {
+  position: relative;
+  perspective: 1200px;
+  cursor: pointer;
+}
+
+.investor-deck .flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-style: preserve-3d;
+}
+
+.investor-deck .flip-card:hover .flip-inner,
+.investor-deck .flip-card.flipped .flip-inner {
+  transform: rotateY(180deg);
+}
+
+.investor-deck .flip-front,
+.investor-deck .flip-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+}
+
+.investor-deck .flip-back {
+  transform: rotateY(180deg);
+}
+
+.investor-deck .no-anim .flip-inner {
+  transition: none !important;
+  transform: none !important;
+}
+
+.investor-lock {
+  --ink: #181713;
+  --paper: #f5f1e9;
+  --paper-deep: #e9e0d2;
+  --clay: #a64f35;
+  --gold: #b08d2b;
+  min-height: 100svh;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(211, 153, 97, 0.26), transparent 28%),
+    radial-gradient(circle at 88% 0%, rgba(176, 141, 43, 0.15), transparent 34%),
+    var(--paper);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  font-family: 'Inter', sans-serif;
+}
+
+.investor-lock__panel {
+  width: min(100%, 520px);
+  position: relative;
+}
+
+.investor-lock__mark {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 52px;
+  color: var(--ink);
+}
+
+.investor-lock__diamond {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--gold);
+  transform: rotate(45deg);
+}
+
+.investor-lock__brand {
+  font-family: 'Cormorant Garamond', 'Times New Roman', serif;
+  font-size: 1.45rem;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
+.investor-lock__eyebrow {
+  color: #7b7467;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.investor-lock h1 {
+  margin: 16px 0 0;
+  font-family: 'Cormorant Garamond', 'Times New Roman', serif;
+  font-size: clamp(3rem, 10vw, 5.8rem);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 0.92;
+}
+
+.investor-lock__subtitle {
+  margin: 18px 0 0;
+  color: #5f574c;
+  font-size: clamp(1rem, 2.5vw, 1.18rem);
+  font-weight: 300;
+  line-height: 1.65;
+}
+
+.investor-lock__form {
+  margin-top: 42px;
+  border-top: 1px solid rgba(24, 23, 19, 0.14);
+  padding-top: 26px;
+}
+
+.investor-lock__label {
+  display: block;
+  color: #6e665b;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.investor-lock__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+}
+
+.investor-lock__input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(24, 23, 19, 0.18);
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--ink);
+  font: inherit;
+  height: 52px;
+  padding: 0 16px;
+  outline: none;
+}
+
+.investor-lock__input:focus {
+  border-color: var(--ink);
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.investor-lock__button {
+  height: 52px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  padding: 0 24px;
+  text-transform: uppercase;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.investor-lock__button:hover {
+  background: transparent;
+  color: var(--ink);
+}
+
+.investor-lock__message {
+  min-height: 22px;
+  margin: 14px 0 0;
+  color: #8c4b36;
+  font-size: 0.9rem;
+  font-weight: 300;
+}
+
+@media (max-width: 640px) {
+  .investor-lock {
+    align-items: start;
+    padding: 32px 22px;
+  }
+
+  .investor-lock__mark {
+    margin-bottom: 42px;
+  }
+
+  .investor-lock__row {
+    grid-template-columns: 1fr;
+  }
+
+  .investor-lock__button {
+    width: 100%;
+  }
+}
