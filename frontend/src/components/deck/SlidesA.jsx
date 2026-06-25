@@ -9,16 +9,12 @@ const Vision = () => (
   <div className="slide-root grid grid-cols-1 lg:grid-cols-2 arch-light" data-testid="slide-1">
     <div className="flex flex-col justify-center px-7 py-12 sm:px-12 md:px-16 lg:px-20 order-2 lg:order-1">
       <div {...r(0)}><Logo /></div>
-      <div {...r(1)} className="mt-10 reveal">
-        <Overline>Pre-Seed · $250,000</Overline>
-      </div>
-      <h1 {...r(2)} className={`reveal mt-6 text-4xl sm:text-5xl lg:text-6xl ${H1}`}>
-        The commissioning OS for interior designers sourcing original art.
+      <h1 {...r(1)} className={`reveal mt-12 text-4xl sm:text-5xl lg:text-6xl ${H1}`}>
+        The fastest path from design brief to finished artwork.
       </h1>
-      <div {...r(3)} className="reveal gold-rule mt-8" />
-      <p {...r(4)} className="reveal mt-7 max-w-md text-base md:text-lg font-light leading-relaxed text-[#5c5c5c]">
-        Palette Match helps design studios turn client briefs into matched artists,
-        managed milestones, secure payments, and finished commissioned pieces.
+      <div {...r(2)} className="reveal gold-rule mt-8" />
+      <p {...r(3)} className="reveal mt-7 max-w-md text-base md:text-lg font-light leading-relaxed text-[#5c5c5c]">
+        Palette Match helps interior designers source, commission, and manage original artwork through a single streamlined workflow.
       </p>
     </div>
     <div className="relative order-1 lg:order-2 min-h-[34vh] lg:min-h-0">
