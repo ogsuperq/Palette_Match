@@ -50,15 +50,17 @@ const Traction = () => (
     <h2 {...r(1)} className={`reveal mt-6 text-3xl sm:text-4xl lg:text-5xl ${H1}`}>Early proof is product-led; the next proof is paid projects.</h2>
     <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-10">
       {[
-        ["Product", "Live", ["6-screen commission workflow", "AI brief + artist matching flow", "PDF export and investor analytics"]],
-        ["Reliability", "Verified", ["19/19 backend tests passing", "Session + slide dwell tracking", "Per-investor share links"]],
-        ["Commercial Proof", "Next", ["50 active interior designers", "100 artist roster", "First 25 paid commissions"]],
+        ["Product", "Built", ["6-screen commission workflow", "AI brief + artist matching flow", "PDF export and investor analytics"]],
+        ["Reliability", "Proven", ["19/19 backend tests passing", "Session + slide dwell tracking", "Per-investor share links"]],
+        ["Commercial Proof", "Market Validation", ["50 active interior designers", "100 artist roster", "First 25 paid commissions"]],
       ].map(([t, tag, items], i) => (
         <div key={t} {...r(2 + i)} className="reveal">
           <div className="gold-rule" />
-          <div className="flex items-baseline justify-between mt-5">
+          <div className="mt-5">
             <h3 className="font-serif-pm text-xl text-[#1f1f1f]">{t}</h3>
-            <span className="text-[10px] uppercase tracking-[0.18em] text-[#b08d2b]">{tag}</span>
+            <span className="mt-3 inline-flex w-fit border border-[#b08d2b]/30 bg-[#fbf8ef] px-3 py-1 text-[10px] font-medium uppercase tracking-[0.16em] text-[#8a6f22]">
+              {tag}
+            </span>
           </div>
           <ul className="mt-5 space-y-3">
             {items.map((it) => (
