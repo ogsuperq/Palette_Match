@@ -140,6 +140,7 @@
 .investor-lock__panel {
   width: min(100%, 520px);
   position: relative;
+  z-index: 1;
 }
 
 .investor-lock__mark {
@@ -193,6 +194,8 @@
   margin-top: 42px;
   border-top: 1px solid rgba(24, 23, 19, 0.14);
   padding-top: 26px;
+  position: relative;
+  z-index: 2;
 }
 
 .investor-lock__label {
@@ -221,6 +224,7 @@
   height: 52px;
   padding: 0 16px;
   outline: none;
+  pointer-events: auto;
 }
 
 .investor-lock__input:focus {
@@ -238,6 +242,7 @@
   font-weight: 600;
   letter-spacing: 0.15em;
   padding: 0 24px;
+  pointer-events: auto;
   text-transform: uppercase;
   transition: background 0.2s ease, color 0.2s ease;
 }

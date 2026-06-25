@@ -21,9 +21,11 @@ export default function InvestorsPage() {
     return "";
   }, [status]);
 
-  const submitPasscode = (event) => {
-    event.preventDefault();
-    if (!ACCESS_CODE) return;
+  const unlockPasscode = () => {
+    if (!ACCESS_CODE) {
+      setStatus("locked");
+      return;
+    }
     if (passcode.trim() === ACCESS_CODE) {
       window.sessionStorage.setItem("palette-match-investor-access", "granted");
       setHasAccess(true);
@@ -31,6 +33,17 @@ export default function InvestorsPage() {
       return;
     }
     setStatus("denied");
+  };
+
+  const submitPasscode = (event) => {
+    event.preventDefault();
+    unlockPasscode();
+  };
+
+  const handlePasscodeKeyDown = (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    unlockPasscode();
   };
 
   if (hasAccess && ACCESS_CODE) {
@@ -65,11 +78,11 @@ export default function InvestorsPage() {
                 setPasscode(event.target.value);
                 setStatus("idle");
               }}
-              disabled={!ACCESS_CODE}
+              onKeyDown={handlePasscodeKeyDown}
               autoComplete="off"
               aria-describedby="investor-lock-message"
             />
-            <button className="investor-lock__button" type="submit" disabled={!ACCESS_CODE}>
+            <button className="investor-lock__button" type="submit">
               Access
             </button>
           </div>
