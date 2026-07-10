@@ -6,6 +6,7 @@ import { startLogin } from "@/lib/auth";
 export default function Navbar() {
   const { user, logout } = useAuth();
   const nav = useNavigate();
+  const isArtist = user?.role === "artist";
 
   return (
     <header
@@ -28,10 +29,10 @@ export default function Navbar() {
             <>
               <button
                 data-testid="nav-dashboard"
-                onClick={() => nav("/dashboard")}
+                onClick={() => nav(isArtist ? "/studio/collection" : "/dashboard")}
                 className="text-neutral-700 hover:text-neutral-900"
               >
-                Dashboard
+                {isArtist ? "Studio" : "Dashboard"}
               </button>
               <button
                 data-testid="nav-logout"
