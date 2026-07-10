@@ -13,6 +13,7 @@ import DashboardPage from "@/pages/DashboardPage";
 import ProjectDetailPage from "@/pages/ProjectDetailPage";
 import ArtistOnboardingPage from "@/pages/ArtistOnboardingPage";
 import ArtistStudioCollectionPage from "@/pages/ArtistStudioCollectionPage";
+import ArtistStudioHomePage from "@/pages/ArtistStudioHomePage";
 
 function AppRouter() {
   const location = useLocation();
@@ -27,6 +28,7 @@ function AppRouter() {
       <Route path="/artist/:userId" element={<ArtistProfilePage />} />
       <Route path="/intake" element={<IntakeWizard />} />
       <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/studio" element={<ArtistStudioHomePage />} />
       <Route path="/studio/collection" element={<ArtistStudioCollectionPage />} />
       <Route path="/onboard-role" element={<RoleSelectPage />} />
       <Route path="/onboard-artist" element={<ArtistOnboardingPage />} />

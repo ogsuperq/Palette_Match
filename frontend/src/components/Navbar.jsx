@@ -29,7 +29,7 @@ export default function Navbar() {
             <>
               <button
                 data-testid="nav-dashboard"
-                onClick={() => nav(isArtist ? "/studio/collection" : "/dashboard")}
+                onClick={() => nav(isArtist ? "/studio" : "/dashboard")}
                 className="text-neutral-700 hover:text-neutral-900"
               >
                 {isArtist ? "Studio" : "Dashboard"}

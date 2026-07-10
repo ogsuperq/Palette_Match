@@ -100,7 +100,7 @@ function FeaturedCollectionView({ collectionState }) {
                   type="button"
                   className="btn-secondary"
                   data-testid="return-to-studio"
-                  onClick={() => nav("/studio/collection")}
+                  onClick={() => nav("/studio")}
                 >
                   Return to Studio
                 </button>
