@@ -181,17 +181,33 @@ export function duplicateCollectionState(collectionState, collectionId) {
 }
 
 export function archiveCollectionState(collectionState, collectionId) {
-  const activeCollections = (collectionState.collections || []).filter((collection) => !collection.archived);
-  if (activeCollections.length <= 1) return collectionState;
-  const timestamp = nowIso();
+  return setCollectionStatusState(collectionState, collectionId, "archived");
+}
 
+export function restoreCollectionState(collectionState, collectionId) {
+  return setCollectionStatusState(collectionState, collectionId, "draft");
+}
+
+export function deleteCollectionState(collectionState, collectionId) {
+  const collections = collectionState?.collections || [];
+  if (collections.length <= 1) return collectionState;
+
+  const timestamp = nowIso();
+  const nextCollections = collections.filter((collection) => collection.collection_id !== collectionId);
+  return withSaveState(collectionState, nextCollections, undefined, timestamp);
+}
+
+export function collectionStatus(collection) {
+  if (collection?.archived) return "Archived";
+  if (collection?.featured) return "Featured";
+  return "Draft";
+}
+
+function withSaveState(collectionState, collections, artwork, timestamp = nowIso()) {
   return {
     ...collectionState,
-    collections: collectionState.collections.map((collection) =>
-      collection.collection_id === collectionId
-        ? { ...collection, archived: true, last_updated: timestamp }
-        : collection
-    ),
+    collections,
+    artwork: artwork || collectionState.artwork,
     save_state: {
       ...collectionState.save_state,
       last_saved_at: timestamp,
@@ -200,4 +216,72 @@ export function archiveCollectionState(collectionState, collectionId) {
       restoration_label: "Return to the previous Collection possibility",
     },
   };
+}
+
+export function setCollectionStatusState(collectionState, collectionId, status) {
+  const normalized = String(status || "").toLowerCase();
+  const activeCollections = (collectionState.collections || []).filter((collection) => !collection.archived);
+  if (normalized === "archived" && activeCollections.length <= 1) return collectionState;
+  const timestamp = nowIso();
+
+  const collections = collectionState.collections.map((collection) => {
+    if (collection.collection_id !== collectionId) return collection;
+    if (normalized === "featured") {
+      return { ...collection, featured: true, archived: false, last_updated: timestamp };
+    }
+    if (normalized === "archived") {
+      return { ...collection, featured: false, archived: true, last_updated: timestamp };
+    }
+    return { ...collection, featured: false, archived: false, last_updated: timestamp };
+  });
+
+  return withSaveState(collectionState, collections, undefined, timestamp);
+}
+
+export function updateCollectionStoryState(collectionState, collectionId, story) {
+  const timestamp = nowIso();
+  const collections = collectionState.collections.map((collection) =>
+    collection.collection_id === collectionId
+      ? { ...collection, collection_story: story, last_updated: timestamp }
+      : collection
+  );
+
+  return withSaveState(collectionState, collections, undefined, timestamp);
+}
+
+export function setFeaturedArtworkState(collectionState, collectionId, artworkId) {
+  const collection = findCollection(collectionState, collectionId);
+  if (!collection?.artwork_ids?.includes(artworkId)) return collectionState;
+  const timestamp = nowIso();
+  const collectionArtworkIds = new Set(collection.artwork_ids);
+  const collections = collectionState.collections.map((item) =>
+    item.collection_id === collectionId
+      ? { ...item, cover_artwork_id: artworkId, last_updated: timestamp }
+      : item
+  );
+  const artwork = collectionState.artwork.map((item) =>
+    collectionArtworkIds.has(item.artwork_id)
+      ? { ...item, featured: item.artwork_id === artworkId, last_updated: timestamp }
+      : item
+  );
+
+  return withSaveState(collectionState, collections, artwork, timestamp);
+}
+
+export function moveArtworkInCollectionState(collectionState, collectionId, artworkId, direction) {
+  const collection = findCollection(collectionState, collectionId);
+  const currentIndex = collection?.artwork_ids?.indexOf(artworkId) ?? -1;
+  if (currentIndex < 0) return collectionState;
+  const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+  if (targetIndex < 0 || targetIndex >= collection.artwork_ids.length) return collectionState;
+  const timestamp = nowIso();
+  const nextArtworkIds = [...collection.artwork_ids];
+  [nextArtworkIds[currentIndex], nextArtworkIds[targetIndex]] = [nextArtworkIds[targetIndex], nextArtworkIds[currentIndex]];
+  const collections = collectionState.collections.map((item) =>
+    item.collection_id === collectionId
+      ? { ...item, artwork_ids: nextArtworkIds, last_updated: timestamp }
+      : item
+  );
+
+  return withSaveState(collectionState, collections, undefined, timestamp);
 }

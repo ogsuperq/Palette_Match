@@ -1,9 +1,16 @@
 import {
   archiveCollectionState,
   buildCollectionFoundationFromArtistProfile,
+  collectionStatus,
+  deleteCollectionState,
   duplicateCollectionState,
   findArtwork,
   findCollection,
+  moveArtworkInCollectionState,
+  restoreCollectionState,
+  setCollectionStatusState,
+  setFeaturedArtworkState,
+  updateCollectionStoryState,
 } from "./collectionDemoState";
 
 describe("buildCollectionFoundationFromArtistProfile", () => {
@@ -82,5 +89,74 @@ describe("buildCollectionFoundationFromArtistProfile", () => {
     const archived = archiveCollectionState(duplicated, duplicated.collections[1].collection_id);
     expect(findCollection(archived, duplicated.collections[1].collection_id).archived).toBe(true);
     expect(findArtwork(archived, archived.artwork[0].artwork_id).title).toBe("Morning Tide");
+  });
+
+  it("restores an archived Collection to Draft status", () => {
+    const state = buildCollectionFoundationFromArtistProfile({
+      user_id: "artist_123",
+      portfolio: [{ url: "https://example.com/artwork.jpg", title: "Morning Tide" }],
+    });
+    const duplicated = duplicateCollectionState(state, state.collections[0].collection_id);
+    const archivedCollectionId = duplicated.collections[1].collection_id;
+
+    const archived = archiveCollectionState(duplicated, archivedCollectionId);
+    const restored = restoreCollectionState(archived, archivedCollectionId);
+
+    expect(collectionStatus(findCollection(restored, archivedCollectionId))).toBe("Draft");
+    expect(findCollection(restored, archivedCollectionId).archived).toBe(false);
+  });
+
+  it("deletes a Collection permanently while keeping the final Collection protected", () => {
+    const state = buildCollectionFoundationFromArtistProfile({
+      user_id: "artist_123",
+      portfolio: [{ url: "https://example.com/artwork.jpg", title: "Morning Tide" }],
+    });
+
+    const unchanged = deleteCollectionState(state, state.collections[0].collection_id);
+    expect(unchanged.collections).toHaveLength(1);
+
+    const duplicated = duplicateCollectionState(state, state.collections[0].collection_id);
+    const duplicateId = duplicated.collections[1].collection_id;
+    const deleted = deleteCollectionState(duplicated, duplicateId);
+
+    expect(deleted.collections).toHaveLength(1);
+    expect(findCollection(deleted, duplicateId)).toBeNull();
+    expect(findArtwork(deleted, deleted.artwork[0].artwork_id).title).toBe("Morning Tide");
+    expect(deleted.save_state.restorable).toBe(true);
+  });
+
+  it("updates Collection Story and status without publishing", () => {
+    const state = buildCollectionFoundationFromArtistProfile({
+      user_id: "artist_123",
+      portfolio: [{ url: "https://example.com/artwork.jpg", title: "Morning Tide" }],
+    });
+
+    const withStory = updateCollectionStoryState(state, state.collections[0].collection_id, "A quiet coastal study.");
+    expect(withStory.collections[0].collection_story).toBe("A quiet coastal study.");
+
+    const draft = setCollectionStatusState(withStory, withStory.collections[0].collection_id, "draft");
+    expect(collectionStatus(draft.collections[0])).toBe("Draft");
+    expect(draft.collections[0].featured).toBe(false);
+    expect(draft.collections[0].archived).toBe(false);
+  });
+
+  it("sets featured Artwork and reorders Artwork within a Collection", () => {
+    const state = buildCollectionFoundationFromArtistProfile({
+      user_id: "artist_123",
+      portfolio: [
+        { url: "https://example.com/one.jpg", title: "First" },
+        { url: "https://example.com/two.jpg", title: "Second" },
+      ],
+    });
+    const collectionId = state.collections[0].collection_id;
+    const secondArtworkId = state.collections[0].artwork_ids[1];
+
+    const featured = setFeaturedArtworkState(state, collectionId, secondArtworkId);
+    expect(featured.collections[0].cover_artwork_id).toBe(secondArtworkId);
+    expect(findArtwork(featured, secondArtworkId).featured).toBe(true);
+
+    const reordered = moveArtworkInCollectionState(featured, collectionId, secondArtworkId, "up");
+    expect(reordered.collections[0].artwork_ids[0]).toBe(secondArtworkId);
+    expect(reordered.save_state.restorable).toBe(true);
   });
 });
