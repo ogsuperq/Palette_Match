@@ -12,7 +12,9 @@ import ArtistsBrowsePage from "@/pages/ArtistsBrowsePage";
 import DashboardPage from "@/pages/DashboardPage";
 import ProjectDetailPage from "@/pages/ProjectDetailPage";
 import ArtistOnboardingPage from "@/pages/ArtistOnboardingPage";
+import ArtistStudioArtworkPage from "@/pages/ArtistStudioArtworkPage";
 import ArtistStudioCollectionPage from "@/pages/ArtistStudioCollectionPage";
+import ArtistStudioCollectionsPage from "@/pages/ArtistStudioCollectionsPage";
 import ArtistStudioHomePage from "@/pages/ArtistStudioHomePage";
 
 function AppRouter() {
@@ -30,6 +32,8 @@ function AppRouter() {
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/studio" element={<ArtistStudioHomePage />} />
       <Route path="/studio/collection" element={<ArtistStudioCollectionPage />} />
+      <Route path="/studio/collections" element={<ArtistStudioCollectionsPage />} />
+      <Route path="/studio/artwork/:artworkId" element={<ArtistStudioArtworkPage />} />
       <Route path="/onboard-role" element={<RoleSelectPage />} />
       <Route path="/onboard-artist" element={<ArtistOnboardingPage />} />
       <Route path="/project/:id" element={<ProjectDetailPage />} />

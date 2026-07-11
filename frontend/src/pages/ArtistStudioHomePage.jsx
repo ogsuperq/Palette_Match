@@ -74,7 +74,7 @@ function StudioHomeContent({ user, collectionState }) {
                 type="button"
                 className="btn-primary mt-6"
                 data-testid="studio-continue-collection"
-                onClick={() => nav("/studio/collection")}
+                onClick={() => nav("/studio/collections")}
               >
                 Open Collection
               </button>
@@ -94,7 +94,7 @@ function StudioHomeContent({ user, collectionState }) {
               <button
                 type="button"
                 className="btn-secondary mt-5 !py-2 !px-4"
-                onClick={() => nav("/studio/collection")}
+                onClick={() => nav("/studio/collections")}
               >
                 Open Collection
               </button>

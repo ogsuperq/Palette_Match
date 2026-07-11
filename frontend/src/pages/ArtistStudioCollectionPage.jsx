@@ -92,7 +92,7 @@ function FeaturedCollectionView({ collectionState }) {
                   type="button"
                   className="btn-primary"
                   data-testid="review-my-collection"
-                  onClick={revealActions}
+                  onClick={() => nav("/studio/collections")}
                 >
                   Review My Collection
                 </button>

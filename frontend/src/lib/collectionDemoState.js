@@ -142,3 +142,62 @@ export function saveCollectionFoundation(collectionState) {
   writeStore(store);
   return store[artistId];
 }
+
+export function findCollection(collectionState, collectionId) {
+  return (collectionState?.collections || []).find((collection) => collection.collection_id === collectionId) || null;
+}
+
+export function findArtwork(collectionState, artworkId) {
+  return (collectionState?.artwork || []).find((artwork) => artwork.artwork_id === artworkId) || null;
+}
+
+export function duplicateCollectionState(collectionState, collectionId) {
+  const source = findCollection(collectionState, collectionId);
+  if (!source) return collectionState;
+  const timestamp = nowIso();
+  const copyCount = (collectionState.collections || []).filter((collection) =>
+    collection.collection_id.startsWith(`${source.collection_id}_copy`)
+  ).length + 1;
+  const duplicate = {
+    ...source,
+    collection_id: `${source.collection_id}_copy_${copyCount}`,
+    title: `${source.title} Study`,
+    featured: false,
+    archived: false,
+    last_updated: timestamp,
+  };
+
+  return {
+    ...collectionState,
+    collections: [...collectionState.collections, duplicate],
+    save_state: {
+      ...collectionState.save_state,
+      last_saved_at: timestamp,
+      last_meaningful_change_at: timestamp,
+      restorable: true,
+      restoration_label: "Return to the previous Collection possibility",
+    },
+  };
+}
+
+export function archiveCollectionState(collectionState, collectionId) {
+  const activeCollections = (collectionState.collections || []).filter((collection) => !collection.archived);
+  if (activeCollections.length <= 1) return collectionState;
+  const timestamp = nowIso();
+
+  return {
+    ...collectionState,
+    collections: collectionState.collections.map((collection) =>
+      collection.collection_id === collectionId
+        ? { ...collection, archived: true, last_updated: timestamp }
+        : collection
+    ),
+    save_state: {
+      ...collectionState.save_state,
+      last_saved_at: timestamp,
+      last_meaningful_change_at: timestamp,
+      restorable: true,
+      restoration_label: "Return to the previous Collection possibility",
+    },
+  };
+}
