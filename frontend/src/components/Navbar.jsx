@@ -17,10 +17,7 @@ export default function Navbar() {
         <Link to="/" data-testid="nav-logo" className="flex items-center gap-2">
           <span className="font-serif text-2xl tracking-tighter">Palette Match</span>
           <span className="hidden sm:inline text-neutral-500" aria-hidden="true">—</span>
-          <span className="hidden sm:inline-flex items-center gap-2 overline text-neutral-500">
-            <span className="h-px w-8 bg-neutral-300" aria-hidden="true" />
-            curated commissions
-          </span>
+          <span className="hidden sm:inline overline text-neutral-500">curated commissions</span>
         </Link>
         <nav className="flex items-center gap-3 sm:gap-7 text-sm">
           <Link to="/artists" data-testid="nav-artists" className="hover:text-neutral-900 text-neutral-600 hidden sm:inline">
