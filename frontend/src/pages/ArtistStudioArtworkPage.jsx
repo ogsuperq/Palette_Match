@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/lib/AuthContext";
 import { http } from "@/lib/api";
 import { DEMO_ARTISTS, isDemoModeEnabled } from "@/lib/demoMode";
 import { findArtwork, loadCollectionFoundation } from "@/lib/collectionDemoState";
+import { rememberPreviewReturnState } from "@/lib/previewReturnState";
 
 function detailRows(artwork) {
   return [
@@ -85,7 +86,7 @@ function DetailsSection({ artwork }) {
   );
 }
 
-function ArtistPerspective({ artwork, collectionTitle, onBack }) {
+function ArtistPerspective({ artwork, collectionTitle, onBack, onPreview }) {
   return (
     <main className="max-w-[1500px] mx-auto px-6 sm:px-10 py-10 sm:py-14" data-testid="artwork-artist-perspective">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
@@ -103,9 +104,14 @@ function ArtistPerspective({ artwork, collectionTitle, onBack }) {
             <p className="font-serif text-2xl mt-3">{collectionTitle}</p>
             {artwork.featured && <span className="ai-badge mt-4">Featured Artwork</span>}
           </div>
-          <button type="button" className="btn-secondary mt-6" onClick={onBack}>
-            Return to Collections
-          </button>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button type="button" className="btn-primary" onClick={onPreview}>
+              Preview Artwork
+            </button>
+            <button type="button" className="btn-secondary" onClick={onBack}>
+              Return to Collections
+            </button>
+          </div>
         </aside>
       </div>
       <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14">
@@ -135,6 +141,7 @@ export default function ArtistStudioArtworkPage() {
   const { artworkId } = useParams();
   const { user, loading } = useAuth();
   const nav = useNavigate();
+  const location = useLocation();
   const [artist, setArtist] = useState(null);
   const [collectionState, setCollectionState] = useState(null);
   const [perspective, setPerspective] = useState("artist");
@@ -168,6 +175,15 @@ export default function ArtistStudioArtworkPage() {
     const collection = (collectionState?.collections || []).find((item) => item.artwork_ids?.includes(artworkId));
     return collection?.title || "Collection";
   }, [artworkId, collectionState]);
+
+  const openPreview = () => {
+    rememberPreviewReturnState({
+      returnTo: `${location.pathname}${location.search}${location.hash}`,
+      artworkId,
+      perspective,
+    });
+    nav(`/studio/artwork/${artworkId}/preview`);
+  };
 
   if (loading) return <div className="p-16 overline text-neutral-500">Loading...</div>;
 
@@ -225,7 +241,12 @@ export default function ArtistStudioArtworkPage() {
           {perspective === "collector" ? (
             <CollectorPerspective artwork={artwork} />
           ) : (
-            <ArtistPerspective artwork={artwork} collectionTitle={collectionTitle} onBack={() => nav("/studio/collections")} />
+            <ArtistPerspective
+              artwork={artwork}
+              collectionTitle={collectionTitle}
+              onBack={() => nav("/studio/collections")}
+              onPreview={openPreview}
+            />
           )}
         </>
       ) : collectionState ? (

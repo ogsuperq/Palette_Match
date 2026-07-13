@@ -9,6 +9,7 @@ import {
   collectionStatus,
   deleteCollectionState,
   duplicateCollectionState,
+  filterCollectionsByView,
   findCollection,
   loadCollectionFoundation,
   moveArtworkInCollectionState,
@@ -35,6 +36,7 @@ function CollectionCard({
   onDelete,
   onDuplicate,
   onOpen,
+  onPresentation,
   onRestore,
   selected,
 }) {
@@ -63,7 +65,7 @@ function CollectionCard({
       <div className="p-6 sm:p-7">
         <div className="flex items-center justify-between gap-4">
           <span className="overline text-neutral-500">{status} Collection</span>
-          {collection.featured && <span className="ai-badge">Featured</span>}
+          {status === "Featured" && <span className="ai-badge">Featured</span>}
         </div>
         <h2 className="font-serif text-3xl tracking-tight mt-4">{collection.title}</h2>
         <p className="text-neutral-600 mt-3 text-sm leading-relaxed">{collection.short_description}</p>
@@ -79,7 +81,10 @@ function CollectionCard({
           <button type="button" className="btn-secondary !py-2 !px-4 text-xs" onClick={onDuplicate}>
             Duplicate
           </button>
-          {collection.archived ? (
+          <button type="button" className="btn-secondary !py-2 !px-4 text-xs" onClick={onPresentation}>
+            Presentation
+          </button>
+          {status === "Archived" ? (
             <button type="button" className="btn-secondary !py-2 !px-4 text-xs" onClick={onRestore}>
               Restore
             </button>
@@ -221,16 +226,8 @@ const COLLECTION_VIEWS = [
   { id: "archived", label: "Archived" },
 ];
 
-function filterCollections(collections, view) {
-  const activeCollections = collections.filter((collection) => !collection.archived);
-  if (view === "featured") return activeCollections.filter((collection) => collection.featured);
-  if (view === "draft") return activeCollections.filter((collection) => !collection.featured);
-  if (view === "archived") return collections.filter((collection) => collection.archived);
-  return activeCollections;
-}
-
 function selectVisibleCollection(collections, view, preferredCollectionId = "") {
-  const visibleCollections = filterCollections(collections, view);
+  const visibleCollections = filterCollectionsByView(collections, view);
   return (
     visibleCollections.find((collection) => collection.collection_id === preferredCollectionId)?.collection_id ||
     visibleCollections[0]?.collection_id ||
@@ -260,7 +257,7 @@ export default function ArtistStudioCollectionsPage() {
         setArtist(artistProfile);
         const nextState = loadCollectionFoundation(artistProfile);
         setCollectionState(nextState);
-        setSelectedCollectionId((current) => current || nextState.collections.find((collection) => !collection.archived)?.collection_id || nextState.collections[0]?.collection_id || "");
+        setSelectedCollectionId((current) => current || nextState.collections.find((collection) => collectionStatus(collection) !== "Archived")?.collection_id || nextState.collections[0]?.collection_id || "");
       } catch (e) {
         if (!mounted) return;
         setError(e.response?.data?.detail || "We could not open your Collections.");
@@ -277,8 +274,8 @@ export default function ArtistStudioCollectionsPage() {
     [collectionState]
   );
   const collections = collectionState?.collections || [];
-  const activeCollections = collections.filter((collection) => !collection.archived);
-  const visibleCollections = filterCollections(collections, collectionView);
+  const activeCollections = collections.filter((collection) => collectionStatus(collection) !== "Archived");
+  const visibleCollections = filterCollectionsByView(collections, collectionView);
   const selectedCollection = findCollection(collectionState, selectedCollectionId) || activeCollections[0] || collections[0];
   const visibleSelectedCollection = visibleCollections.find((collection) => collection.collection_id === selectedCollection?.collection_id);
 
@@ -377,10 +374,11 @@ export default function ArtistStudioCollectionsPage() {
                   collection={collection}
                   artworkById={artworkById}
                   selected={selectedCollection?.collection_id === collection.collection_id}
-                  canArchive={!collection.archived && activeCollections.length > 1}
+                  canArchive={collectionStatus(collection) !== "Archived" && activeCollections.length > 1}
                   canDelete={collections.length > 1}
                   onOpen={() => openCollection(collection)}
                   onDuplicate={() => persistState(duplicateCollectionState(collectionState, collection.collection_id))}
+                  onPresentation={() => nav(`/studio/collections/${collection.collection_id}/presentation`)}
                   onArchive={() => persistState(archiveCollectionState(collectionState, collection.collection_id))}
                   onRestore={() => restoreCollection(collection)}
                   onDelete={() => deleteCollection(collection)}

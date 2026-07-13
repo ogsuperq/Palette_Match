@@ -13,9 +13,12 @@ import DashboardPage from "@/pages/DashboardPage";
 import ProjectDetailPage from "@/pages/ProjectDetailPage";
 import ArtistOnboardingPage from "@/pages/ArtistOnboardingPage";
 import ArtistStudioArtworkPage from "@/pages/ArtistStudioArtworkPage";
+import ArtistStudioArtworkPreviewPage from "@/pages/ArtistStudioArtworkPreviewPage";
 import ArtistStudioCollectionPage from "@/pages/ArtistStudioCollectionPage";
+import ArtistStudioCollectionPreviewPage from "@/pages/ArtistStudioCollectionPreviewPage";
 import ArtistStudioCollectionsPage from "@/pages/ArtistStudioCollectionsPage";
 import ArtistStudioHomePage from "@/pages/ArtistStudioHomePage";
+import ArtistStudioPresentationPage from "@/pages/ArtistStudioPresentationPage";
 
 function AppRouter() {
   const location = useLocation();
@@ -33,7 +36,10 @@ function AppRouter() {
       <Route path="/studio" element={<ArtistStudioHomePage />} />
       <Route path="/studio/collection" element={<ArtistStudioCollectionPage />} />
       <Route path="/studio/collections" element={<ArtistStudioCollectionsPage />} />
+      <Route path="/studio/collections/:collectionId/presentation" element={<ArtistStudioPresentationPage />} />
+      <Route path="/studio/collections/:collectionId/presentation/preview" element={<ArtistStudioCollectionPreviewPage />} />
       <Route path="/studio/artwork/:artworkId" element={<ArtistStudioArtworkPage />} />
+      <Route path="/studio/artwork/:artworkId/preview" element={<ArtistStudioArtworkPreviewPage />} />
       <Route path="/onboard-role" element={<RoleSelectPage />} />
       <Route path="/onboard-artist" element={<ArtistOnboardingPage />} />
       <Route path="/project/:id" element={<ProjectDetailPage />} />
