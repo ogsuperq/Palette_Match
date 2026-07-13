@@ -112,7 +112,48 @@ function CollectionCard({
   );
 }
 
-function CollectionRefinement({ collection, artworkById, onStoryChange, onStatusChange, onFeatureArtwork, onMoveArtwork, onOpenArtwork }) {
+function CollectionStatusSection({ status, onMoveToDraft, onMakeFeatured, onRestore }) {
+  const copy = {
+    Draft: {
+      description: "This Collection is still being refined.",
+      action: "Make Featured",
+      onClick: onMakeFeatured,
+    },
+    Featured: {
+      description: "This Collection is currently featured in your Studio.",
+      action: "Move to Draft",
+      onClick: onMoveToDraft,
+    },
+    Archived: {
+      description: "This Collection has been archived.",
+      action: "Restore Collection",
+      onClick: onRestore,
+    },
+  }[status];
+
+  return (
+    <div className="mt-8">
+      <span className="overline text-neutral-500">Status</span>
+      <p className="font-serif text-3xl mt-3">{status}</p>
+      <p className="text-neutral-600 mt-3 text-sm leading-relaxed">{copy.description}</p>
+      <button type="button" className="btn-secondary mt-5" onClick={copy.onClick}>
+        {copy.action}
+      </button>
+    </div>
+  );
+}
+
+function CollectionRefinement({
+  collection,
+  artworkById,
+  onStoryChange,
+  onMoveToDraft,
+  onMakeFeatured,
+  onRestore,
+  onFeatureArtwork,
+  onMoveArtwork,
+  onOpenArtwork,
+}) {
   const orderedArtwork = (collection.artwork_ids || [])
     .map((artworkId) => artworkById.get(artworkId))
     .filter(Boolean);
@@ -146,18 +187,12 @@ function CollectionRefinement({ collection, artworkById, onStoryChange, onStatus
           />
         </div>
 
-        <div className="mt-8">
-          <label className="overline text-neutral-500" htmlFor="collection-status">Collection Status</label>
-          <select
-            id="collection-status"
-            className="input-luxury mt-3"
-            value={status.toLowerCase()}
-            onChange={(event) => onStatusChange(event.target.value)}
-          >
-            <option value="draft">Draft</option>
-            <option value="featured">Featured</option>
-          </select>
-        </div>
+        <CollectionStatusSection
+          status={status}
+          onMoveToDraft={onMoveToDraft}
+          onMakeFeatured={onMakeFeatured}
+          onRestore={onRestore}
+        />
       </div>
 
       <div className="lg:col-span-7">
@@ -405,7 +440,9 @@ export default function ArtistStudioCollectionsPage() {
               collection={visibleSelectedCollection}
               artworkById={artworkById}
               onStoryChange={(story) => persistState(updateCollectionStoryState(collectionState, visibleSelectedCollection.collection_id, story))}
-              onStatusChange={(status) => persistState(setCollectionStatusState(collectionState, visibleSelectedCollection.collection_id, status))}
+              onMoveToDraft={() => persistState(setCollectionStatusState(collectionState, visibleSelectedCollection.collection_id, "draft"))}
+              onMakeFeatured={() => persistState(setCollectionStatusState(collectionState, visibleSelectedCollection.collection_id, "featured"))}
+              onRestore={() => restoreCollection(visibleSelectedCollection)}
               onFeatureArtwork={(artworkId) => persistState(setFeaturedArtworkState(collectionState, visibleSelectedCollection.collection_id, artworkId))}
               onMoveArtwork={(artworkId, direction) => persistState(moveArtworkInCollectionState(collectionState, visibleSelectedCollection.collection_id, artworkId, direction))}
               onOpenArtwork={(artworkId) => nav(`/studio/artwork/${artworkId}`)}
