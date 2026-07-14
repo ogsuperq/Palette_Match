@@ -17,6 +17,7 @@ import ArtistStudioArtworkPreviewPage from "@/pages/ArtistStudioArtworkPreviewPa
 import ArtistStudioCollectionPage from "@/pages/ArtistStudioCollectionPage";
 import ArtistStudioCollectionPreviewPage from "@/pages/ArtistStudioCollectionPreviewPage";
 import ArtistStudioCollectionsPage from "@/pages/ArtistStudioCollectionsPage";
+import ArtistStudioConversationPage from "@/pages/ArtistStudioConversationPage";
 import ArtistStudioHomePage from "@/pages/ArtistStudioHomePage";
 import ArtistStudioMessagesPage from "@/pages/ArtistStudioMessagesPage";
 import ArtistStudioPresentationPage from "@/pages/ArtistStudioPresentationPage";
@@ -36,6 +37,7 @@ function AppRouter() {
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/studio" element={<ArtistStudioHomePage />} />
       <Route path="/studio/messages" element={<ArtistStudioMessagesPage />} />
+      <Route path="/studio/messages/:relationshipId" element={<ArtistStudioConversationPage />} />
       <Route path="/studio/collection" element={<ArtistStudioCollectionPage />} />
       <Route path="/studio/collections" element={<ArtistStudioCollectionsPage />} />
       <Route path="/studio/collections/:collectionId/presentation" element={<ArtistStudioPresentationPage />} />

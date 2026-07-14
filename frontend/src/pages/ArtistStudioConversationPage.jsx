@@ -1,0 +1,210 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import Navbar from "@/components/Navbar";
+import { useAuth } from "@/lib/AuthContext";
+import { isDemoModeEnabled } from "@/lib/demoMode";
+import {
+  appendStudioConversationMessage,
+  clearConversationDraft,
+  findStudioRelationship,
+  loadConversationDraft,
+  loadStudioConversation,
+  saveConversationDraft,
+} from "@/lib/studioMessagesDemo";
+
+function RelationshipHeader({ relationship }) {
+  return (
+    <header className="max-w-4xl mx-auto">
+      <span className="overline text-neutral-500">Conversation</span>
+      <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-5">
+        <img
+          src={relationship.collaborator.avatar_url}
+          alt={relationship.collaborator.name}
+          className="h-16 w-16 rounded-full object-cover bg-neutral-100"
+        />
+        <div>
+          <h1 className="font-serif text-5xl sm:text-6xl tracking-tighter">{relationship.collaborator.name}</h1>
+          <p className="text-neutral-700 mt-3 text-lg">{relationship.title}</p>
+          <p className="text-sm text-neutral-500 mt-2">{relationship.stage}</p>
+        </div>
+      </div>
+      <p className="text-neutral-700 mt-8 text-lg leading-relaxed">Take your time.</p>
+      <p className="text-neutral-600 mt-2 leading-relaxed">
+        The best creative partnerships are built one thoughtful conversation at a time.
+      </p>
+    </header>
+  );
+}
+
+function CreativeContext({ relationship }) {
+  return (
+    <section className="max-w-4xl mx-auto mt-10 bg-white border border-neutral-200 p-5 sm:p-6" data-testid="conversation-context">
+      <span className="overline text-neutral-500">Creative Context</span>
+      <div className="mt-4 flex gap-4 items-center">
+        <div className="w-24 aspect-square bg-neutral-100 overflow-hidden flex-shrink-0">
+          <img
+            src={relationship.artwork.thumbnail_url}
+            alt={relationship.artwork.alt}
+            className="h-full w-full object-cover"
+          />
+        </div>
+        <div>
+          <h2 className="font-serif text-2xl tracking-tight">{relationship.artwork.title}</h2>
+          <p className="text-sm text-neutral-600 mt-2">{relationship.title}</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ConversationTimeline({ conversation }) {
+  const hasMessages = conversation.date_groups?.some((group) => group.messages?.length);
+
+  if (!hasMessages) {
+    return (
+      <section className="max-w-4xl mx-auto mt-10 bg-white border border-neutral-200 p-8 sm:p-10" data-testid="conversation-timeline">
+        <h2 className="font-serif text-3xl tracking-tight">The conversation can begin here.</h2>
+        <p className="text-neutral-600 mt-3 leading-relaxed">
+          When this relationship is ready for dialogue, your shared thoughts will gather in this space.
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="max-w-4xl mx-auto mt-10" data-testid="conversation-timeline" aria-label="Conversation timeline">
+      {conversation.date_groups.map((group) => (
+        <div key={group.label} className="mt-10 first:mt-0">
+          <div className="flex items-center gap-4">
+            <div className="h-px bg-neutral-200 flex-1" />
+            <span className="text-xs text-neutral-500">{group.label}</span>
+            <div className="h-px bg-neutral-200 flex-1" />
+          </div>
+          <div className="mt-8 space-y-8">
+            {group.messages.map((message) => (
+              <article key={message.message_id} className="bg-white border border-neutral-200 p-6 sm:p-7">
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <h3 className="font-medium text-neutral-900">{message.sender_name}</h3>
+                  <span className="text-xs text-neutral-500">{message.sender_role}</span>
+                </div>
+                <p className="text-neutral-700 mt-4 leading-8 whitespace-pre-wrap">{message.body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      ))}
+    </section>
+  );
+}
+
+function ConversationComposer({ value, onChange, onSubmit }) {
+  return (
+    <form className="max-w-4xl mx-auto mt-10 bg-white border border-neutral-200 p-5 sm:p-6" onSubmit={onSubmit}>
+      <label htmlFor="conversation-composer" className="overline text-neutral-500">
+        Continue the conversation
+      </label>
+      <textarea
+        id="conversation-composer"
+        className="input-luxury mt-4 min-h-[160px] leading-relaxed"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder="Share your thoughts..."
+        data-testid="conversation-composer"
+      />
+      <div className="mt-5 flex justify-end">
+        <button type="submit" className="btn-primary" disabled={!value.trim()}>
+          Send
+        </button>
+      </div>
+    </form>
+  );
+}
+
+export default function ArtistStudioConversationPage() {
+  const { relationshipId } = useParams();
+  const { user, loading } = useAuth();
+  const nav = useNavigate();
+  const [conversation, setConversation] = useState(null);
+  const [draft, setDraft] = useState("");
+  const relationship = useMemo(() => findStudioRelationship(relationshipId), [relationshipId]);
+
+  useEffect(() => {
+    if (!relationshipId) return;
+    setConversation(loadStudioConversation(relationshipId));
+    setDraft(loadConversationDraft(relationshipId));
+  }, [relationshipId]);
+
+  function handleSubmit(event) {
+    event.preventDefault();
+    if (!draft.trim() || !relationshipId) return;
+    const nextConversation = appendStudioConversationMessage(relationshipId, draft);
+    setConversation(nextConversation);
+    setDraft("");
+    clearConversationDraft(relationshipId);
+  }
+
+  function handleDraftChange(nextDraft) {
+    setDraft(nextDraft);
+    if (relationshipId) {
+      saveConversationDraft(relationshipId, nextDraft);
+    }
+  }
+
+  if (loading) return <div className="p-16 overline text-neutral-500">Loading...</div>;
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#FAFAFA]">
+        <Navbar />
+        <div className="max-w-2xl mx-auto px-6 py-32 text-center">
+          <h1 className="font-serif text-4xl">Please sign in</h1>
+          <p className="text-neutral-600 mt-4">Your Studio conversation is one click away.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (user.role !== "artist" && !isDemoModeEnabled()) {
+    return (
+      <div className="min-h-screen bg-[#FAFAFA]">
+        <Navbar />
+        <div className="max-w-2xl mx-auto px-6 py-32 text-center">
+          <span className="overline text-neutral-500">Artist Studio</span>
+          <h1 className="font-serif text-4xl mt-4">Conversations belong in the Artist Studio.</h1>
+        </div>
+      </div>
+    );
+  }
+
+  if (!relationship || !conversation) {
+    return (
+      <div className="min-h-screen bg-[#FAFAFA]">
+        <Navbar />
+        <div className="max-w-2xl mx-auto px-6 py-32 text-center">
+          <span className="overline text-neutral-500">Conversation</span>
+          <h1 className="font-serif text-4xl mt-4">This relationship is not available.</h1>
+          <button type="button" className="btn-secondary mt-6" onClick={() => nav("/studio/messages")}>
+            Return to Messages
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#FAFAFA]" data-testid="artist-studio-conversation">
+      <Navbar />
+      <main className="px-6 sm:px-10 py-10 sm:py-14">
+        <div className="max-w-4xl mx-auto mb-10">
+          <button type="button" className="btn-secondary !py-2 !px-4 text-xs" onClick={() => nav("/studio/messages")}>
+            Return to Messages
+          </button>
+        </div>
+        <RelationshipHeader relationship={relationship} />
+        <CreativeContext relationship={relationship} />
+        <ConversationTimeline conversation={conversation} />
+        <ConversationComposer value={draft} onChange={handleDraftChange} onSubmit={handleSubmit} />
+      </main>
+    </div>
+  );
+}

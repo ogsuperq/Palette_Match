@@ -1,8 +1,11 @@
 import {
+  DEMO_STUDIO_CONVERSATIONS,
   DEMO_STUDIO_RELATIONSHIPS,
   MESSAGE_SECTIONS,
+  findStudioRelationship,
   getRelationshipRecommendation,
   groupRelationshipsBySection,
+  loadStudioConversation,
 } from "./studioMessagesDemo";
 
 describe("studio messages demo relationships", () => {
@@ -56,6 +59,34 @@ describe("studio messages demo relationships", () => {
       expect(relationship.current_state).toBeTruthy();
       expect(relationship.time_label).toBeTruthy();
       expect(relationship.unread_count).toBeUndefined();
+    });
+  });
+
+  it("links each relationship to the Studio Conversation route without duplicating relationship state", () => {
+    DEMO_STUDIO_RELATIONSHIPS.forEach((relationship) => {
+      expect(relationship.conversation_path).toBe(`/studio/messages/${relationship.relationship_id}`);
+      expect(findStudioRelationship(relationship.relationship_id)).toBe(relationship);
+    });
+  });
+
+  it("provides calm demo conversation data keyed by canonical relationship id", () => {
+    DEMO_STUDIO_CONVERSATIONS.forEach((conversation) => {
+      const relationship = findStudioRelationship(conversation.relationship_id);
+
+      expect(relationship).toBeTruthy();
+      expect(loadStudioConversation(conversation.relationship_id).relationship_id).toBe(conversation.relationship_id);
+      conversation.date_groups.forEach((group) => {
+        expect(group.label).toBeTruthy();
+        group.messages.forEach((message) => {
+          expect(message.sender_name).toBeTruthy();
+          expect(message.sender_role).toBeTruthy();
+          expect(message.body).toBeTruthy();
+          expect(message.precise_timestamp).toBeUndefined();
+          expect(message.read_receipt).toBeUndefined();
+          expect(message.reactions).toBeUndefined();
+          expect(message.attachments).toBeUndefined();
+        });
+      });
     });
   });
 });

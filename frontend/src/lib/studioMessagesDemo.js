@@ -37,7 +37,7 @@ export const DEMO_STUDIO_RELATIONSHIPS = [
     },
     recommendation: "Emily reviewed your latest proposal.",
     action_label: "Continue Conversation",
-    conversation_path: "/project/demo_project_relationship_emily",
+    conversation_path: "/studio/messages/relationship_emily_proposal",
     summary: "A calm abstract piece for an entryway with layered coastal light.",
   },
   {
@@ -60,7 +60,7 @@ export const DEMO_STUDIO_RELATIONSHIPS = [
     },
     recommendation: "",
     action_label: "Continue Conversation",
-    conversation_path: "/project/demo_project_relationship_david",
+    conversation_path: "/studio/messages/relationship_david_sketch",
     summary: "Color direction is taking shape around warm neutrals and quiet movement.",
   },
   {
@@ -83,7 +83,7 @@ export const DEMO_STUDIO_RELATIONSHIPS = [
     },
     recommendation: "",
     action_label: "Continue Conversation",
-    conversation_path: "/project/demo_project_relationship_sarah",
+    conversation_path: "/studio/messages/relationship_sarah_planning",
     summary: "Early planning for a paired work that can anchor a dining space.",
   },
   {
@@ -106,7 +106,7 @@ export const DEMO_STUDIO_RELATIONSHIPS = [
     },
     recommendation: "",
     action_label: "Continue Conversation",
-    conversation_path: "/project/demo_project_relationship_mara",
+    conversation_path: "/studio/messages/relationship_mara_completed",
     summary: "A finished work with shared decisions preserved for future reference.",
   },
   {
@@ -129,10 +129,136 @@ export const DEMO_STUDIO_RELATIONSHIPS = [
     },
     recommendation: "",
     action_label: "Continue Conversation",
-    conversation_path: "/project/demo_project_relationship_noah",
+    conversation_path: "/studio/messages/relationship_noah_archived",
     summary: "A paused conversation that remains available as creative context.",
   },
 ];
+
+export const DEMO_STUDIO_CONVERSATIONS = [
+  {
+    conversation_id: "conversation_emily_proposal",
+    relationship_id: "relationship_emily_proposal",
+    date_groups: [
+      {
+        label: "Earlier this week",
+        messages: [
+          {
+            message_id: "message_emily_1",
+            sender_name: "Emily Carter",
+            sender_role: "Collector",
+            body: "The softer palette feels very close to what we imagined for the entryway. I keep coming back to the way the light gathers near the center.",
+          },
+          {
+            message_id: "message_artist_1",
+            sender_name: "Avery Stone",
+            sender_role: "Artist",
+            body: "That center glow can become the quiet anchor of the piece. I can keep the edges more atmospheric so the work feels welcoming as someone enters the home.",
+          },
+        ],
+      },
+      {
+        label: "Today",
+        messages: [
+          {
+            message_id: "message_emily_2",
+            sender_name: "Emily Carter",
+            sender_role: "Collector",
+            body: "I reviewed the latest proposal and the direction feels right. Could we keep the lower left area a little calmer?",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    conversation_id: "conversation_david_sketch",
+    relationship_id: "relationship_david_sketch",
+    date_groups: [
+      {
+        label: "Yesterday",
+        messages: [
+          {
+            message_id: "message_artist_david_1",
+            sender_name: "Avery Stone",
+            sender_role: "Artist",
+            body: "I explored two warmer studies for the room. The second one gives the wall more breathing room while still holding enough movement.",
+          },
+          {
+            message_id: "message_david_1",
+            sender_name: "David Lin",
+            sender_role: "Collector",
+            body: "The second study feels more settled to me. I would love your thoughts on whether the warmer edge could continue across the top.",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    conversation_id: "conversation_sarah_planning",
+    relationship_id: "relationship_sarah_planning",
+    date_groups: [
+      {
+        label: "This week",
+        messages: [
+          {
+            message_id: "message_sarah_1",
+            sender_name: "Sarah Mitchell",
+            sender_role: "Designer",
+            body: "The dining room has strong morning light. I think a paired work could bring softness without losing structure.",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    conversation_id: "conversation_mara_completed",
+    relationship_id: "relationship_mara_completed",
+    date_groups: [
+      {
+        label: "Last week",
+        messages: [
+          {
+            message_id: "message_mara_1",
+            sender_name: "Mara Bell",
+            sender_role: "Collector",
+            body: "The finished work feels peaceful in the room. Thank you for carrying the early sketch into something so complete.",
+          },
+          {
+            message_id: "message_artist_mara_1",
+            sender_name: "Avery Stone",
+            sender_role: "Artist",
+            body: "I am so glad it settled into the space. The final piece kept the quiet movement we found in the first study.",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    conversation_id: "conversation_noah_archived",
+    relationship_id: "relationship_noah_archived",
+    date_groups: [],
+  },
+];
+
+const CONVERSATION_STORAGE_KEY = "palette_match_studio_conversations_v1";
+const DRAFT_STORAGE_PREFIX = "palette_match_studio_conversation_draft_v1:";
+
+function canUseLocalStorage() {
+  return typeof window !== "undefined" && Boolean(window.localStorage);
+}
+
+function readStoredConversations() {
+  if (!canUseLocalStorage()) return {};
+  try {
+    return JSON.parse(window.localStorage.getItem(CONVERSATION_STORAGE_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function writeStoredConversations(conversations) {
+  if (!canUseLocalStorage()) return;
+  window.localStorage.setItem(CONVERSATION_STORAGE_KEY, JSON.stringify(conversations));
+}
 
 export function groupRelationshipsBySection(relationships = DEMO_STUDIO_RELATIONSHIPS) {
   return MESSAGE_SECTIONS.reduce((groups, section) => {
@@ -147,4 +273,67 @@ export function getRelationshipRecommendation(relationships = DEMO_STUDIO_RELATI
   return [...relationships]
     .filter((relationship) => relationship.section === "active" && relationship.recommendation)
     .sort((a, b) => a.priority - b.priority)[0] || null;
+}
+
+export function findStudioRelationship(relationshipId, relationships = DEMO_STUDIO_RELATIONSHIPS) {
+  return relationships.find((relationship) => relationship.relationship_id === relationshipId) || null;
+}
+
+export function loadStudioConversation(relationshipId) {
+  const stored = readStoredConversations();
+  const storedConversation = stored[relationshipId];
+  if (storedConversation) return storedConversation;
+  return DEMO_STUDIO_CONVERSATIONS.find((conversation) => conversation.relationship_id === relationshipId) || {
+    conversation_id: `conversation_${relationshipId}`,
+    relationship_id: relationshipId,
+    date_groups: [],
+  };
+}
+
+export function appendStudioConversationMessage(relationshipId, body, sender = { name: "Avery Stone", role: "Artist" }) {
+  const message = {
+    message_id: `message_${relationshipId}_${Date.now()}`,
+    sender_name: sender.name,
+    sender_role: sender.role,
+    body: body.trim(),
+  };
+  const stored = readStoredConversations();
+  const conversation = loadStudioConversation(relationshipId);
+  const dateGroups = conversation.date_groups?.length ? [...conversation.date_groups] : [];
+  const lastGroup = dateGroups[dateGroups.length - 1];
+
+  if (lastGroup?.label === "Today") {
+    dateGroups[dateGroups.length - 1] = {
+      ...lastGroup,
+      messages: [...lastGroup.messages, message],
+    };
+  } else {
+    dateGroups.push({
+      label: "Today",
+      messages: [message],
+    });
+  }
+
+  const nextConversation = {
+    ...conversation,
+    date_groups: dateGroups,
+  };
+  stored[relationshipId] = nextConversation;
+  writeStoredConversations(stored);
+  return nextConversation;
+}
+
+export function loadConversationDraft(relationshipId) {
+  if (!canUseLocalStorage()) return "";
+  return window.localStorage.getItem(`${DRAFT_STORAGE_PREFIX}${relationshipId}`) || "";
+}
+
+export function saveConversationDraft(relationshipId, draft) {
+  if (!canUseLocalStorage()) return;
+  window.localStorage.setItem(`${DRAFT_STORAGE_PREFIX}${relationshipId}`, draft);
+}
+
+export function clearConversationDraft(relationshipId) {
+  if (!canUseLocalStorage()) return;
+  window.localStorage.removeItem(`${DRAFT_STORAGE_PREFIX}${relationshipId}`);
 }
