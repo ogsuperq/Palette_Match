@@ -368,6 +368,71 @@ export function getPresentationArtworkOrder(collection) {
   return collection?.artwork_ids || [];
 }
 
+export function presentationReadiness(collection, activeDraft) {
+  const artworkOrder = getPresentationArtworkOrder(collection);
+  const artworkIds = new Set(artworkOrder);
+  const hasActiveDraft = Boolean(activeDraft);
+  const hasArtwork = artworkOrder.length > 0;
+  const hasArtworkOrder = hasArtwork;
+  const hasCoverArtwork = Boolean(activeDraft?.cover_artwork_id && artworkIds.has(activeDraft.cover_artwork_id));
+  const hasCollectionStory = Boolean(String(collection?.collection_story || "").trim());
+  const featuredArtworkIds = (activeDraft?.featured_artwork_ids || []).filter((artworkId) => artworkIds.has(artworkId));
+  const hasFeaturedArtwork = featuredArtworkIds.length > 0;
+  const hasOpenedPreview = Boolean(activeDraft?.preview_opened_at);
+
+  const conditions = [
+    {
+      id: "activeDraft",
+      ready: hasActiveDraft,
+      readyText: "Active Presentation Draft available",
+      nextText: "Open a Presentation Draft",
+    },
+    {
+      id: "artwork",
+      ready: hasArtwork,
+      readyText: "Artwork included",
+      nextText: "Include at least one Artwork",
+    },
+    {
+      id: "artworkOrder",
+      ready: hasArtworkOrder,
+      readyText: "Artwork order established",
+      nextText: "Establish Artwork order",
+    },
+    {
+      id: "coverArtwork",
+      ready: hasCoverArtwork,
+      readyText: "Cover artwork selected",
+      nextText: "Choose a cover artwork",
+    },
+    {
+      id: "collectionStory",
+      ready: hasCollectionStory,
+      readyText: "Collection Story included",
+      nextText: "Add a Collection Story",
+    },
+    {
+      id: "featuredArtwork",
+      ready: hasFeaturedArtwork,
+      readyText: "Featured artwork chosen",
+      nextText: "Select a featured artwork",
+    },
+    {
+      id: "previewOpened",
+      ready: hasOpenedPreview,
+      readyText: "Presentation previewed",
+      nextText: "Preview the presentation",
+    },
+  ];
+
+  return {
+    readyToReview: conditions.every((condition) => condition.ready),
+    ready: conditions.filter((condition) => condition.ready).map((condition) => condition.readyText),
+    takingShape: conditions.filter((condition) => !condition.ready).map((condition) => condition.nextText),
+    conditions,
+  };
+}
+
 export function createSavedPresentationDraftState(collectionState, collectionId) {
   const collection = findCollection(collectionState, collectionId);
   if (!collection) return collectionState;
@@ -442,6 +507,20 @@ export function togglePresentationFeaturedArtworkState(collectionState, collecti
           featured_artwork_ids: Array.from(featuredArtworkIds),
           updated_at: timestamp,
         }
+      : item
+  );
+
+  return withPresentationSaveState(collectionState, collectionState.collections, presentationDrafts, timestamp);
+}
+
+export function markPresentationPreviewOpenedState(collectionState, collectionId) {
+  const collection = findCollection(collectionState, collectionId);
+  const draft = findActivePresentationDraft(collectionState, collectionId);
+  if (!collection || !draft) return collectionState;
+  const timestamp = nowIso();
+  const presentationDrafts = (collectionState.presentation_drafts || []).map((item) =>
+    item.draft_id === draft.draft_id
+      ? { ...item, preview_opened_at: timestamp, updated_at: timestamp }
       : item
   );
 

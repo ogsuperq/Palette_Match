@@ -9,8 +9,10 @@ import {
   findArtwork,
   findCollection,
   findActivePresentationDraft,
+  markPresentationPreviewOpenedState,
   moveArtworkInCollectionState,
   normalizeCollectionFoundation,
+  presentationReadiness,
   restoreCollectionState,
   setActivePresentationDraftState,
   setCollectionStatusState,
@@ -223,6 +225,48 @@ describe("buildCollectionFoundationFromArtistProfile", () => {
     const withFeatured = togglePresentationFeaturedArtworkState(withCover, collectionId, secondArtworkId);
     expect(findActivePresentationDraft(withFeatured, collectionId).featured_artwork_ids).toContain(secondArtworkId);
     expect(findActivePresentationDraft(withFeatured, collectionId).artwork_order).toEqual(state.collections[0].artwork_ids);
+  });
+
+  it("derives Presentation Readiness from objective Collection and draft state", () => {
+    const state = buildCollectionFoundationFromArtistProfile({
+      user_id: "artist_123",
+      portfolio: [
+        { url: "https://example.com/one.jpg", title: "First" },
+        { url: "https://example.com/two.jpg", title: "Second" },
+      ],
+    });
+    const collectionId = state.collections[0].collection_id;
+
+    const initialReadiness = presentationReadiness(
+      findCollection(state, collectionId),
+      findActivePresentationDraft(state, collectionId)
+    );
+    expect(initialReadiness.readyToReview).toBe(false);
+    expect(initialReadiness.ready).toEqual(
+      expect.arrayContaining([
+        "Active Presentation Draft available",
+        "Artwork included",
+        "Artwork order established",
+        "Cover artwork selected",
+        "Featured artwork chosen",
+      ])
+    );
+    expect(initialReadiness.takingShape).toEqual(
+      expect.arrayContaining(["Add a Collection Story", "Preview the presentation"])
+    );
+
+    const withStory = updateCollectionStoryState(state, collectionId, "A quiet study in coastal light.");
+    const previewed = markPresentationPreviewOpenedState(withStory, collectionId);
+    const readyReadiness = presentationReadiness(
+      findCollection(previewed, collectionId),
+      findActivePresentationDraft(previewed, collectionId)
+    );
+
+    expect(readyReadiness.readyToReview).toBe(true);
+    expect(readyReadiness.takingShape).toEqual([]);
+    expect(readyReadiness.ready).toEqual(
+      expect.arrayContaining(["Collection Story included", "Presentation previewed"])
+    );
   });
 
   it("normalizes legacy featured and archived fields into one canonical Collection status", () => {

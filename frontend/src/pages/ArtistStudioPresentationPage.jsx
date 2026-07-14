@@ -10,6 +10,8 @@ import {
   findCollection,
   getPresentationArtworkOrder,
   loadCollectionFoundation,
+  markPresentationPreviewOpenedState,
+  presentationReadiness,
   saveCollectionFoundation,
   setActivePresentationDraftState,
   setPresentationCoverArtworkState,
@@ -22,6 +24,48 @@ function formatSaved(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Saved locally";
   return `Saved ${date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}`;
+}
+
+function PresentationReadiness({ readiness, onPreview }) {
+  return (
+    <section className="bg-white border border-neutral-200 p-6 sm:p-7">
+      <span className="overline text-neutral-500">Presentation Readiness</span>
+      <h2 className="font-serif text-3xl mt-4">
+        {readiness.readyToReview ? "Ready to review." : "Your presentation is taking shape."}
+      </h2>
+      <p className="text-neutral-600 mt-4 leading-relaxed">
+        {readiness.readyToReview
+          ? "Your Collection has the essential elements for a thoughtful preview."
+          : "A few elements can help collectors experience the Collection as you intend."}
+      </p>
+
+      {readiness.ready.length > 0 && (
+        <div className="mt-6">
+          <div className="overline text-neutral-500">Ready</div>
+          <ul className="mt-3 space-y-2 text-sm text-neutral-700">
+            {readiness.ready.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {readiness.takingShape.length > 0 && (
+        <div className="mt-6">
+          <div className="overline text-neutral-500">Still taking shape</div>
+          <ul className="mt-3 space-y-2 text-sm text-neutral-700">
+            {readiness.takingShape.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <button type="button" className="btn-primary mt-6 w-full" onClick={onPreview}>
+        Preview Presentation
+      </button>
+    </section>
+  );
 }
 
 export default function ArtistStudioPresentationPage() {
@@ -75,6 +119,7 @@ export default function ArtistStudioPresentationPage() {
     .filter(Boolean);
   const coverArtwork = artworkById.get(activeDraft?.cover_artwork_id) || orderedArtwork[0];
   const featuredArtworkIds = new Set(activeDraft?.featured_artwork_ids || []);
+  const readiness = presentationReadiness(collection, activeDraft);
 
   const persistState = (nextState) => {
     const saved = saveCollectionFoundation(nextState);
@@ -83,10 +128,13 @@ export default function ArtistStudioPresentationPage() {
   };
 
   const openPreview = () => {
+    const saved = saveCollectionFoundation(markPresentationPreviewOpenedState(collectionState, collectionId));
+    setCollectionState(saved);
+    const savedDraft = findActivePresentationDraft(saved, collectionId);
     rememberPreviewReturnState({
       returnTo: `${location.pathname}${location.search}${location.hash}`,
       collectionId,
-      draftId: activeDraft?.draft_id,
+      draftId: savedDraft?.draft_id,
     });
     nav(`/studio/collections/${collectionId}/presentation/preview`);
   };
@@ -201,6 +249,8 @@ export default function ArtistStudioPresentationPage() {
             </div>
 
             <aside className="xl:col-span-4 xl:sticky xl:top-28 space-y-8">
+              <PresentationReadiness readiness={readiness} onPreview={openPreview} />
+
               <section className="bg-white border border-neutral-200 p-6 sm:p-7">
                 <label className="overline text-neutral-500" htmlFor="presentation-draft">Presentation Draft</label>
                 <select

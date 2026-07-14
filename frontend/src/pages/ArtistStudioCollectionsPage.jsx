@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/lib/AuthContext";
@@ -75,28 +75,30 @@ function CollectionCard({
           <span>{status}</span>
         </div>
         <div className="mt-6 flex flex-wrap gap-2">
-          <button type="button" className="btn-primary !py-2 !px-4 text-xs" onClick={onOpen}>
-            Open
-          </button>
-          <button type="button" className="btn-secondary !py-2 !px-4 text-xs" onClick={onDuplicate}>
-            Duplicate
-          </button>
-          <button type="button" className="btn-secondary !py-2 !px-4 text-xs" onClick={onPresentation}>
-            Presentation
-          </button>
           {status === "Archived" ? (
             <button type="button" className="btn-secondary !py-2 !px-4 text-xs" onClick={onRestore}>
               Restore
             </button>
           ) : (
-            <button
-              type="button"
-              className="btn-secondary !py-2 !px-4 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
-              disabled={!canArchive}
-              onClick={onArchive}
-            >
-              Archive
-            </button>
+            <>
+              <button type="button" className="btn-primary !py-2 !px-4 text-xs" onClick={onOpen}>
+                Open
+              </button>
+              <button type="button" className="btn-secondary !py-2 !px-4 text-xs" onClick={onDuplicate}>
+                Duplicate
+              </button>
+              <button type="button" className="btn-secondary !py-2 !px-4 text-xs" onClick={onPresentation}>
+                Presentation
+              </button>
+              <button
+                type="button"
+                className="btn-secondary !py-2 !px-4 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
+                disabled={!canArchive}
+                onClick={onArchive}
+              >
+                Archive
+              </button>
+            </>
           )}
           <button
             type="button"
@@ -147,6 +149,8 @@ function CollectionRefinement({
   collection,
   artworkById,
   onStoryChange,
+  storySaveStatus,
+  storySaveStatusVisible,
   onMoveToDraft,
   onMakeFeatured,
   onRestore,
@@ -185,6 +189,16 @@ function CollectionRefinement({
             onChange={(event) => onStoryChange(event.target.value)}
             placeholder="Your artwork speaks first. Your story simply helps others understand the journey behind it."
           />
+          {storySaveStatus && (
+            <p
+              className={`mt-3 text-xs text-neutral-500 transition-opacity duration-500 ${
+                storySaveStatusVisible ? "opacity-100" : "opacity-0"
+              }`}
+              aria-live="polite"
+            >
+              {storySaveStatus}
+            </p>
+          )}
         </div>
 
         <CollectionStatusSection
@@ -254,6 +268,21 @@ function CollectionRefinement({
   );
 }
 
+function ArchivedCollectionState({ onRestore }) {
+  return (
+    <section className="mt-14 bg-white border border-neutral-200 p-10 sm:p-14 max-w-3xl" data-testid="archived-collection-state">
+      <span className="overline text-neutral-500">Archived Collection</span>
+      <h2 className="font-serif text-4xl tracking-tight mt-4">This Collection has been set aside.</h2>
+      <p className="text-neutral-600 mt-5 leading-relaxed">
+        Restore it whenever you are ready to continue refining or presenting it.
+      </p>
+      <button type="button" className="btn-secondary mt-8" onClick={onRestore}>
+        Restore Collection
+      </button>
+    </section>
+  );
+}
+
 const COLLECTION_VIEWS = [
   { id: "all", label: "All" },
   { id: "featured", label: "Featured" },
@@ -278,6 +307,11 @@ export default function ArtistStudioCollectionsPage() {
   const [selectedCollectionId, setSelectedCollectionId] = useState("");
   const [collectionView, setCollectionView] = useState("all");
   const [error, setError] = useState("");
+  const [storySaveStatus, setStorySaveStatus] = useState("");
+  const [storySaveStatusVisible, setStorySaveStatusVisible] = useState(false);
+  const storySavedTimer = useRef(null);
+  const storyFadeTimer = useRef(null);
+  const storyClearTimer = useRef(null);
 
   useEffect(() => {
     let mounted = true;
@@ -304,6 +338,14 @@ export default function ArtistStudioCollectionsPage() {
     };
   }, [user]);
 
+  useEffect(() => {
+    return () => {
+      window.clearTimeout(storySavedTimer.current);
+      window.clearTimeout(storyFadeTimer.current);
+      window.clearTimeout(storyClearTimer.current);
+    };
+  }, []);
+
   const artworkById = useMemo(
     () => new Map((collectionState?.artwork || []).map((artwork) => [artwork.artwork_id, artwork])),
     [collectionState]
@@ -313,11 +355,28 @@ export default function ArtistStudioCollectionsPage() {
   const visibleCollections = filterCollectionsByView(collections, collectionView);
   const selectedCollection = findCollection(collectionState, selectedCollectionId) || activeCollections[0] || collections[0];
   const visibleSelectedCollection = visibleCollections.find((collection) => collection.collection_id === selectedCollection?.collection_id);
+  const visibleSelectedCollectionStatus = collectionStatus(visibleSelectedCollection);
 
   const persistState = (nextState, nextView = collectionView, preferredCollectionId = selectedCollectionId) => {
     const saved = saveCollectionFoundation(nextState);
     setCollectionState(saved);
     setSelectedCollectionId(selectVisibleCollection(saved.collections || [], nextView, preferredCollectionId));
+  };
+
+  const handleStoryChange = (story) => {
+    window.clearTimeout(storySavedTimer.current);
+    window.clearTimeout(storyFadeTimer.current);
+    window.clearTimeout(storyClearTimer.current);
+    setStorySaveStatus("Saving…");
+    setStorySaveStatusVisible(true);
+    persistState(updateCollectionStoryState(collectionState, visibleSelectedCollection.collection_id, story));
+    storySavedTimer.current = window.setTimeout(() => {
+      setStorySaveStatus("Changes saved");
+      storyFadeTimer.current = window.setTimeout(() => {
+        setStorySaveStatusVisible(false);
+        storyClearTimer.current = window.setTimeout(() => setStorySaveStatus(""), 500);
+      }, 3500);
+    }, 2000);
   };
 
   const openCollection = (collection) => {
@@ -435,11 +494,17 @@ export default function ArtistStudioCollectionsPage() {
             </div>
           )}
 
-          {visibleSelectedCollection && (
+          {visibleSelectedCollection && visibleSelectedCollectionStatus === "Archived" && (
+            <ArchivedCollectionState onRestore={() => restoreCollection(visibleSelectedCollection)} />
+          )}
+
+          {visibleSelectedCollection && visibleSelectedCollectionStatus !== "Archived" && (
             <CollectionRefinement
               collection={visibleSelectedCollection}
               artworkById={artworkById}
-              onStoryChange={(story) => persistState(updateCollectionStoryState(collectionState, visibleSelectedCollection.collection_id, story))}
+              onStoryChange={handleStoryChange}
+              storySaveStatus={storySaveStatus}
+              storySaveStatusVisible={storySaveStatusVisible}
               onMoveToDraft={() => persistState(setCollectionStatusState(collectionState, visibleSelectedCollection.collection_id, "draft"))}
               onMakeFeatured={() => persistState(setCollectionStatusState(collectionState, visibleSelectedCollection.collection_id, "featured"))}
               onRestore={() => restoreCollection(visibleSelectedCollection)}
