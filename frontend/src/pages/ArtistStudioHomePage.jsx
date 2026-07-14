@@ -20,6 +20,19 @@ function StudioAreaNote({ title, description }) {
   );
 }
 
+function StudioAreaCard({ title, description, action, onOpen }) {
+  return (
+    <div className="bg-white p-6 sm:p-7">
+      <span className="overline text-neutral-500">Available</span>
+      <h3 className="font-serif text-2xl mt-3">{title}</h3>
+      <p className="text-sm text-neutral-600 mt-2 leading-relaxed">{description}</p>
+      <button type="button" className="btn-secondary mt-5 !py-2 !px-4" onClick={onOpen}>
+        {action}
+      </button>
+    </div>
+  );
+}
+
 function StudioHomeContent({ user, collectionState }) {
   const nav = useNavigate();
   const collection = collectionState.collections[0];
@@ -85,23 +98,17 @@ function StudioHomeContent({ user, collectionState }) {
         <div className="mt-12">
           <span className="overline text-neutral-500">Studio areas</span>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-neutral-200 border border-neutral-200 mt-5">
-            <div className="bg-white p-6 sm:p-7">
-              <span className="overline text-neutral-500">Available</span>
-              <h3 className="font-serif text-2xl mt-3">Collection</h3>
-              <p className="text-sm text-neutral-600 mt-2 leading-relaxed">
-                Experience and refine the work that introduces your Studio.
-              </p>
-              <button
-                type="button"
-                className="btn-secondary mt-5 !py-2 !px-4"
-                onClick={() => nav("/studio/collections")}
-              >
-                Open Collection
-              </button>
-            </div>
-            <StudioAreaNote
+            <StudioAreaCard
+              title="Collection"
+              description="Experience and refine the work that introduces your Studio."
+              action="Open Collection"
+              onOpen={() => nav("/studio/collections")}
+            />
+            <StudioAreaCard
               title="Messages"
-              description="Studio Messages will preserve creative conversations with their full context when this area is implemented."
+              description="Return to creative relationships with their context preserved."
+              action="Open Messages"
+              onOpen={() => nav("/studio/messages")}
             />
             <StudioAreaNote
               title="Commissions"
