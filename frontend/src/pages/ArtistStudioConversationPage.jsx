@@ -10,6 +10,7 @@ import {
   loadConversationDraft,
   loadStudioConversation,
   saveConversationDraft,
+  sharedReferencesForRelationship,
 } from "@/lib/studioMessagesDemo";
 
 function RelationshipHeader({ relationship }) {
@@ -97,6 +98,86 @@ function ConversationTimeline({ conversation }) {
   );
 }
 
+function SharedReferences({ references, onOpenReference }) {
+  const [shareOpen, setShareOpen] = useState(false);
+
+  return (
+    <section className="max-w-4xl mx-auto mt-10" data-testid="shared-references">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">
+        <div>
+          <span className="overline text-neutral-500">Shared References</span>
+          <h2 className="font-serif text-3xl tracking-tight mt-3">Everything that inspires this project.</h2>
+          <p className="text-neutral-600 mt-2 leading-relaxed">Beautifully organized. Always within reach.</p>
+        </div>
+        <button type="button" className="btn-secondary" onClick={() => setShareOpen(true)}>
+          Share Reference
+        </button>
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-px bg-neutral-200 border border-neutral-200">
+        {references.length ? (
+          references.map((reference) => (
+            <button
+              type="button"
+              key={reference.reference_id}
+              className="bg-white text-left p-5 transition hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+              onClick={() => onOpenReference(reference)}
+              data-testid={`shared-reference-${reference.reference_id}`}
+            >
+              {reference.preview_image_url && (
+                <div className="aspect-[4/3] bg-neutral-100 overflow-hidden">
+                  <img
+                    src={reference.preview_image_url}
+                    alt={reference.preview_alt}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              )}
+              <span className="overline text-neutral-500 block mt-5">{reference.reference_type}</span>
+              <h3 className="font-serif text-2xl tracking-tight mt-2">{reference.title}</h3>
+              <p className="text-sm text-neutral-600 mt-3 leading-relaxed">{reference.description}</p>
+            </button>
+          ))
+        ) : (
+          <div className="bg-white p-6 sm:p-8 md:col-span-3">
+            <p className="text-sm text-neutral-600 leading-relaxed">
+              Every great commission begins with inspiration. Share your first reference whenever you&apos;re ready.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {shareOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-neutral-950/30 px-6 flex items-center justify-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="share-reference-title"
+          data-testid="share-reference-placeholder"
+        >
+          <div className="bg-white border border-neutral-200 max-w-md w-full p-7 sm:p-8">
+            <span className="overline text-neutral-500">Share Reference</span>
+            <h3 id="share-reference-title" className="font-serif text-3xl tracking-tight mt-3">
+              Reference sharing is taking shape.
+            </h3>
+            <p className="text-neutral-600 mt-4 leading-relaxed">
+              This will become a calm way to share artwork, Collections, and presentations within a creative relationship.
+            </p>
+            <p className="text-sm text-neutral-500 mt-3 leading-relaxed">
+              This demo only establishes the future sharing moment.
+            </p>
+            <div className="mt-6 flex justify-end">
+              <button type="button" className="btn-secondary" onClick={() => setShareOpen(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function ConversationComposer({ value, onChange, onSubmit }) {
   return (
     <form className="max-w-4xl mx-auto mt-10 bg-white border border-neutral-200 p-5 sm:p-6" onSubmit={onSubmit}>
@@ -127,6 +208,7 @@ export default function ArtistStudioConversationPage() {
   const [conversation, setConversation] = useState(null);
   const [draft, setDraft] = useState("");
   const relationship = useMemo(() => findStudioRelationship(relationshipId), [relationshipId]);
+  const sharedReferences = useMemo(() => sharedReferencesForRelationship(relationshipId), [relationshipId]);
 
   useEffect(() => {
     if (!relationshipId) return;
@@ -148,6 +230,10 @@ export default function ArtistStudioConversationPage() {
     if (relationshipId) {
       saveConversationDraft(relationshipId, nextDraft);
     }
+  }
+
+  function handleOpenReference(reference) {
+    nav(reference.destination_path);
   }
 
   if (loading) return <div className="p-16 overline text-neutral-500">Loading...</div>;
@@ -203,6 +289,7 @@ export default function ArtistStudioConversationPage() {
         <RelationshipHeader relationship={relationship} />
         <CreativeContext relationship={relationship} />
         <ConversationTimeline conversation={conversation} />
+        <SharedReferences references={sharedReferences} onOpenReference={handleOpenReference} />
         <ConversationComposer value={draft} onChange={handleDraftChange} onSubmit={handleSubmit} />
       </main>
     </div>

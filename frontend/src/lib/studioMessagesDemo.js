@@ -239,6 +239,99 @@ export const DEMO_STUDIO_CONVERSATIONS = [
   },
 ];
 
+export const DEMO_STUDIO_SHARED_REFERENCES = [
+  {
+    reference_id: "reference_emily_artwork_tidal_light",
+    relationship_id: "relationship_emily_proposal",
+    reference_type: "Artwork",
+    title: "Tidal Light",
+    description: "Shared while discussing proposal revisions.",
+    preview_image_url: "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?auto=format&fit=crop&w=360&q=80",
+    preview_alt: "Abstract artwork with luminous layered color",
+    destination_path: "/studio/artwork/artwork_demo-artist-mira_1",
+  },
+  {
+    reference_id: "reference_emily_collection_featured",
+    relationship_id: "relationship_emily_proposal",
+    reference_type: "Collection",
+    title: "Featured Collection",
+    description: "Shared as a quiet view of the work shaping this direction.",
+    preview_image_url: "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?auto=format&fit=crop&w=360&q=80",
+    preview_alt: "Featured Collection cover artwork",
+    destination_path: "/studio/collections?collection=collection_demo-artist-mira_featured",
+  },
+  {
+    reference_id: "reference_emily_presentation_current",
+    relationship_id: "relationship_emily_proposal",
+    reference_type: "Presentation",
+    title: "Current Presentation",
+    description: "Shared so the proposal can be experienced with artwork order and rhythm.",
+    preview_image_url: "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?auto=format&fit=crop&w=360&q=80",
+    preview_alt: "Presentation cover artwork",
+    destination_path: "/studio/collections/collection_demo-artist-mira_featured/presentation/preview",
+  },
+  {
+    reference_id: "reference_david_artwork_quiet_horizon",
+    relationship_id: "relationship_david_sketch",
+    reference_type: "Artwork",
+    title: "Quiet Horizon",
+    description: "Shared while considering the warmer sketch direction.",
+    preview_image_url: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?auto=format&fit=crop&w=360&q=80",
+    preview_alt: "Quiet abstract artwork with warm horizon tones",
+    destination_path: "/studio/artwork/artwork_demo-artist-mira_2",
+  },
+  {
+    reference_id: "reference_david_collection_featured",
+    relationship_id: "relationship_david_sketch",
+    reference_type: "Collection",
+    title: "Featured Collection",
+    description: "Shared to keep the broader Collection language close at hand.",
+    preview_image_url: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?auto=format&fit=crop&w=360&q=80",
+    preview_alt: "Featured Collection artwork detail",
+    destination_path: "/studio/collections?collection=collection_demo-artist-mira_featured",
+  },
+  {
+    reference_id: "reference_david_presentation_current",
+    relationship_id: "relationship_david_sketch",
+    reference_type: "Presentation",
+    title: "Current Presentation",
+    description: "Shared as a calm presentation view of the active Collection.",
+    preview_image_url: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?auto=format&fit=crop&w=360&q=80",
+    preview_alt: "Presentation reference artwork",
+    destination_path: "/studio/collections/collection_demo-artist-mira_featured/presentation/preview",
+  },
+  {
+    reference_id: "reference_sarah_artwork_tidal_light",
+    relationship_id: "relationship_sarah_planning",
+    reference_type: "Artwork",
+    title: "Tidal Light",
+    description: "Shared while planning a paired work for the dining room.",
+    preview_image_url: "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?auto=format&fit=crop&w=360&q=80",
+    preview_alt: "Abstract artwork with luminous layered color",
+    destination_path: "/studio/artwork/artwork_demo-artist-mira_1",
+  },
+  {
+    reference_id: "reference_sarah_collection_featured",
+    relationship_id: "relationship_sarah_planning",
+    reference_type: "Collection",
+    title: "Featured Collection",
+    description: "Shared to keep the Collection's tone visible during planning.",
+    preview_image_url: "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?auto=format&fit=crop&w=360&q=80",
+    preview_alt: "Featured Collection cover artwork",
+    destination_path: "/studio/collections?collection=collection_demo-artist-mira_featured",
+  },
+  {
+    reference_id: "reference_sarah_presentation_current",
+    relationship_id: "relationship_sarah_planning",
+    reference_type: "Presentation",
+    title: "Current Presentation",
+    description: "Shared to experience the Collection as a composed presentation.",
+    preview_image_url: "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?auto=format&fit=crop&w=360&q=80",
+    preview_alt: "Presentation cover artwork",
+    destination_path: "/studio/collections/collection_demo-artist-mira_featured/presentation/preview",
+  },
+];
+
 const CONVERSATION_STORAGE_KEY = "palette_match_studio_conversations_v1";
 const DRAFT_STORAGE_PREFIX = "palette_match_studio_conversation_draft_v1:";
 
@@ -288,6 +381,10 @@ export function loadStudioConversation(relationshipId) {
     relationship_id: relationshipId,
     date_groups: [],
   };
+}
+
+export function sharedReferencesForRelationship(relationshipId, references = DEMO_STUDIO_SHARED_REFERENCES) {
+  return references.filter((reference) => reference.relationship_id === relationshipId);
 }
 
 export function appendStudioConversationMessage(relationshipId, body, sender = { name: "Avery Stone", role: "Artist" }) {

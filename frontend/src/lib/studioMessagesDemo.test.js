@@ -1,11 +1,13 @@
 import {
   DEMO_STUDIO_CONVERSATIONS,
   DEMO_STUDIO_RELATIONSHIPS,
+  DEMO_STUDIO_SHARED_REFERENCES,
   MESSAGE_SECTIONS,
   findStudioRelationship,
   getRelationshipRecommendation,
   groupRelationshipsBySection,
   loadStudioConversation,
+  sharedReferencesForRelationship,
 } from "./studioMessagesDemo";
 
 describe("studio messages demo relationships", () => {
@@ -87,6 +89,31 @@ describe("studio messages demo relationships", () => {
           expect(message.attachments).toBeUndefined();
         });
       });
+    });
+  });
+
+  it("keeps Shared References relationship-owned and routed to existing Studio destinations", () => {
+    const emilyReferences = sharedReferencesForRelationship("relationship_emily_proposal");
+
+    expect(emilyReferences.map((reference) => reference.reference_type)).toEqual([
+      "Artwork",
+      "Collection",
+      "Presentation",
+    ]);
+    emilyReferences.forEach((reference) => {
+      expect(reference.relationship_id).toBe("relationship_emily_proposal");
+      expect(reference.title).toBeTruthy();
+      expect(reference.description).toBeTruthy();
+      expect(reference.destination_path).toMatch(/^\/studio\//);
+      expect(reference.message_id).toBeUndefined();
+      expect(reference.uploaded_by).toBeUndefined();
+      expect(reference.attachment_url).toBeUndefined();
+    });
+  });
+
+  it("does not create orphaned Shared References outside canonical relationships", () => {
+    DEMO_STUDIO_SHARED_REFERENCES.forEach((reference) => {
+      expect(findStudioRelationship(reference.relationship_id)).toBeTruthy();
     });
   });
 });
