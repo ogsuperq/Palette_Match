@@ -5,6 +5,11 @@ const COLLECTION_STATUS = {
   archived: "archived",
 };
 
+const SEEDED_DEMO_DIMENSIONS = {
+  "Tidal Light": "36 × 48 in",
+  "Quiet Horizon": "30 × 40 in",
+};
+
 function nowIso() {
   return new Date().toISOString();
 }
@@ -67,6 +72,16 @@ function normalizeCollectionRecord(collection) {
   return {
     ...rest,
     status: normalizeCollectionStatus(collection),
+  };
+}
+
+function normalizeArtworkRecord(artwork) {
+  if (artwork.dimensions) return artwork;
+  const seededDimensions = SEEDED_DEMO_DIMENSIONS[artwork.title];
+  if (artwork.source?.type !== "legacy_portfolio_bridge" || !seededDimensions) return artwork;
+  return {
+    ...artwork,
+    dimensions: seededDimensions,
   };
 }
 
@@ -204,6 +219,7 @@ export function normalizeCollectionFoundation(collectionState) {
   return {
     ...collectionState,
     collections,
+    artwork: (collectionState.artwork || []).map(normalizeArtworkRecord),
     presentation_drafts: nextDrafts,
   };
 }

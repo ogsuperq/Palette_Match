@@ -10,10 +10,8 @@ function detailRows(artwork) {
   return [
     ["Year Created", artwork.year_created],
     ["Medium", artwork.medium],
-    ["Dimensions", artwork.dimensions],
     ["Availability", artwork.availability],
-    ["Original / Print", artwork.original_or_print_status],
-    ["Price", artwork.price ? `$${Number(artwork.price).toLocaleString()}` : ""],
+    ["Dimensions", artwork.dimensions],
   ].filter(([, value]) => value !== null && value !== undefined && value !== "");
 }
 

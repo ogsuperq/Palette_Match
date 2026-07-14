@@ -7,14 +7,23 @@ import { DEMO_ARTISTS, isDemoModeEnabled } from "@/lib/demoMode";
 import { findArtwork, loadCollectionFoundation } from "@/lib/collectionDemoState";
 import { rememberPreviewReturnState } from "@/lib/previewReturnState";
 
-function detailRows(artwork) {
+const ARTIST_DETAIL_PLACEHOLDER = "Not yet specified";
+
+function artistDetailRows(artwork) {
+  return [
+    ["Year Created", artwork.year_created || ARTIST_DETAIL_PLACEHOLDER],
+    ["Medium", artwork.medium || ARTIST_DETAIL_PLACEHOLDER],
+    ["Availability", artwork.availability || ARTIST_DETAIL_PLACEHOLDER],
+    ["Dimensions", artwork.dimensions || ARTIST_DETAIL_PLACEHOLDER],
+  ];
+}
+
+function collectorDetailRows(artwork) {
   return [
     ["Year Created", artwork.year_created],
     ["Medium", artwork.medium],
-    ["Dimensions", artwork.dimensions],
     ["Availability", artwork.availability],
-    ["Original / Print", artwork.original_or_print_status],
-    ["Price", artwork.price ? `$${Number(artwork.price).toLocaleString()}` : ""],
+    ["Dimensions", artwork.dimensions],
   ].filter(([, value]) => value !== null && value !== undefined && value !== "");
 }
 
@@ -65,8 +74,8 @@ function StorySection({ artwork }) {
   );
 }
 
-function DetailsSection({ artwork }) {
-  const rows = detailRows(artwork);
+function DetailsSection({ artwork, audience = "collector" }) {
+  const rows = audience === "artist" ? artistDetailRows(artwork) : collectorDetailRows(artwork);
   return (
     <section>
       <span className="overline text-neutral-500">Details</span>
@@ -116,7 +125,7 @@ function ArtistPerspective({ artwork, collectionTitle, onBack, onPreview }) {
       </div>
       <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14">
         <StorySection artwork={artwork} />
-        <DetailsSection artwork={artwork} />
+        <DetailsSection artwork={artwork} audience="artist" />
       </div>
     </main>
   );

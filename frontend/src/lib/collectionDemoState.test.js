@@ -54,6 +54,7 @@ describe("buildCollectionFoundationFromArtistProfile", () => {
         title: "Morning Tide",
         medium: "Oil",
         year_created: 2024,
+        dimensions: "",
         source: {
           type: "legacy_portfolio_bridge",
           portfolio_index: 0,
@@ -198,6 +199,25 @@ describe("buildCollectionFoundationFromArtistProfile", () => {
         artwork_order: collection.artwork_ids,
       })
     );
+  });
+
+  it("adds conservative dimensions to older seeded demo Artwork without overwriting existing dimensions", () => {
+    const state = buildCollectionFoundationFromArtistProfile({
+      user_id: "demo_collector",
+      portfolio: [
+        { url: "https://example.com/tidal.jpg", title: "Tidal Light", medium: "Oil", year: 2024 },
+        { url: "https://example.com/horizon.jpg", title: "Quiet Horizon", medium: "Oil", year: 2023, dimensions: "28 × 36 in" },
+        { url: "https://example.com/other.jpg", title: "Other Study", medium: "Oil", year: 2022 },
+      ],
+    });
+
+    const normalized = normalizeCollectionFoundation(state);
+
+    expect(normalized.artwork.map((artwork) => [artwork.title, artwork.dimensions])).toEqual([
+      ["Tidal Light", "36 × 48 in"],
+      ["Quiet Horizon", "28 × 36 in"],
+      ["Other Study", ""],
+    ]);
   });
 
   it("supports active Presentation Draft selection, cover Artwork, and featured works locally", () => {

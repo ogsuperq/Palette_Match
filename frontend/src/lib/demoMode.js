@@ -36,8 +36,8 @@ export const DEMO_ARTISTS = [
     price_high: 9200,
     availability: "Available for select commissions",
     portfolio: [
-      { url: "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?auto=format&fit=crop&w=900&q=80", title: "Tidal Light", medium: "Oil", year: 2024 },
-      { url: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?auto=format&fit=crop&w=900&q=80", title: "Quiet Horizon", medium: "Oil", year: 2023 },
+      { url: "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?auto=format&fit=crop&w=900&q=80", title: "Tidal Light", medium: "Oil", year: 2024, dimensions: "36 × 48 in" },
+      { url: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?auto=format&fit=crop&w=900&q=80", title: "Quiet Horizon", medium: "Oil", year: 2023, dimensions: "30 × 40 in" },
     ],
     years_experience: 11,
     rating: 4.9,
