@@ -1,10 +1,15 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/lib/AuthContext";
 import { http } from "@/lib/api";
 import { DEMO_ARTISTS, isDemoModeEnabled } from "@/lib/demoMode";
-import { findArtwork, loadCollectionFoundation } from "@/lib/collectionDemoState";
+import {
+  findArtwork,
+  loadCollectionFoundation,
+  saveCollectionFoundation,
+  updateArtworkState,
+} from "@/lib/collectionDemoState";
 import { rememberPreviewReturnState } from "@/lib/previewReturnState";
 
 const ARTIST_DETAIL_PLACEHOLDER = "Not yet specified";
@@ -30,7 +35,7 @@ function collectorDetailRows(artwork) {
 function storyEntries(artwork) {
   return Object.entries(artwork.story || {})
     .filter(([, value]) => value)
-    .map(([key, value]) => [key.charAt(0).toUpperCase() + key.slice(1), value]);
+    .map(([key, value]) => [key === "meaning" ? "Story" : key.charAt(0).toUpperCase() + key.slice(1), value]);
 }
 
 function ArtworkImage({ artwork }) {
@@ -74,6 +79,70 @@ function StorySection({ artwork }) {
   );
 }
 
+function EditableTitle({ artwork, onArtworkChange }) {
+  return (
+    <div className="mt-6">
+      <label className="overline text-neutral-500" htmlFor="artwork-title">Title</label>
+      <input
+        id="artwork-title"
+        className="mt-3 w-full bg-transparent font-serif text-5xl tracking-tighter text-neutral-900 border-0 border-b border-neutral-200 px-0 pb-2 focus:outline-none focus:border-neutral-900"
+        value={artwork.title || ""}
+        onChange={(event) => onArtworkChange({ title: event.target.value })}
+        placeholder="Untitled Artwork"
+      />
+    </div>
+  );
+}
+
+function EditableStorySection({ artwork, onArtworkChange }) {
+  return (
+    <section>
+      <label className="overline text-neutral-500" htmlFor="artwork-story">Story</label>
+      {!artwork.story?.meaning && (
+        <p className="text-neutral-600 mt-4 leading-relaxed">
+          Add the story behind this Artwork when you are ready.
+        </p>
+      )}
+      <textarea
+        id="artwork-story"
+        rows={10}
+        className="input-luxury mt-4 leading-relaxed"
+        value={artwork.story?.meaning || ""}
+        onChange={(event) => onArtworkChange({ story: { meaning: event.target.value } })}
+        placeholder="This Artwork may speak first. Add context only when it feels useful."
+      />
+    </section>
+  );
+}
+
+function EditableDetailsSection({ artwork, onArtworkChange }) {
+  const rows = [
+    ["Year Created", "year_created", artwork.year_created || ""],
+    ["Medium", "medium", artwork.medium || ""],
+    ["Availability", "availability", artwork.availability || ""],
+    ["Dimensions", "dimensions", artwork.dimensions || ""],
+  ];
+
+  return (
+    <section>
+      <span className="overline text-neutral-500">Details</span>
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-px bg-neutral-200 border border-neutral-200">
+        {rows.map(([label, field, value]) => (
+          <label key={field} className="bg-white p-5 block">
+            <span className="overline text-neutral-500">{label}</span>
+            <input
+              className="mt-2 w-full bg-transparent text-neutral-800 border-0 border-b border-neutral-200 px-0 py-1 focus:outline-none focus:border-neutral-900"
+              value={value}
+              onChange={(event) => onArtworkChange({ [field]: event.target.value })}
+              placeholder={ARTIST_DETAIL_PLACEHOLDER}
+            />
+          </label>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function DetailsSection({ artwork, audience = "collector" }) {
   const rows = audience === "artist" ? artistDetailRows(artwork) : collectorDetailRows(artwork);
   return (
@@ -95,7 +164,19 @@ function DetailsSection({ artwork, audience = "collector" }) {
   );
 }
 
-function ArtistPerspective({ artwork, collectionTitle, onBack, onPreview }) {
+function SaveStateIndicator({ status, visible }) {
+  if (!status) return null;
+  return (
+    <p
+      className={`text-xs text-neutral-500 transition-opacity duration-500 ${visible ? "opacity-100" : "opacity-0"}`}
+      aria-live="polite"
+    >
+      {status}
+    </p>
+  );
+}
+
+function ArtistPerspective({ artwork, collectionTitle, onArtworkChange, onBack, onPreview, saveStatus, saveStatusVisible }) {
   return (
     <main className="max-w-[1500px] mx-auto px-6 sm:px-10 py-10 sm:py-14" data-testid="artwork-artist-perspective">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
@@ -104,7 +185,7 @@ function ArtistPerspective({ artwork, collectionTitle, onBack, onPreview }) {
         </div>
         <aside className="lg:col-span-4 lg:sticky lg:top-28">
           <span className="overline text-neutral-500">Artist Perspective</span>
-          <h1 className="font-serif text-5xl tracking-tighter mt-6">{artwork.title}</h1>
+          <EditableTitle artwork={artwork} onArtworkChange={onArtworkChange} />
           <p className="text-neutral-600 mt-4 leading-relaxed">
             This view keeps the Artwork at the center while preserving artist-facing context.
           </p>
@@ -121,11 +202,14 @@ function ArtistPerspective({ artwork, collectionTitle, onBack, onPreview }) {
               Return to Collections
             </button>
           </div>
+          <div className="mt-4 min-h-[1rem]">
+            <SaveStateIndicator status={saveStatus} visible={saveStatusVisible} />
+          </div>
         </aside>
       </div>
       <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14">
-        <StorySection artwork={artwork} />
-        <DetailsSection artwork={artwork} audience="artist" />
+        <EditableStorySection artwork={artwork} onArtworkChange={onArtworkChange} />
+        <EditableDetailsSection artwork={artwork} onArtworkChange={onArtworkChange} />
       </div>
     </main>
   );
@@ -155,6 +239,11 @@ export default function ArtistStudioArtworkPage() {
   const [collectionState, setCollectionState] = useState(null);
   const [perspective, setPerspective] = useState("artist");
   const [error, setError] = useState("");
+  const [saveStatus, setSaveStatus] = useState("");
+  const [saveStatusVisible, setSaveStatusVisible] = useState(false);
+  const savedTimer = useRef(null);
+  const fadeTimer = useRef(null);
+  const clearTimer = useRef(null);
 
   useEffect(() => {
     let mounted = true;
@@ -179,11 +268,36 @@ export default function ArtistStudioArtworkPage() {
     };
   }, [user]);
 
+  useEffect(() => {
+    return () => {
+      window.clearTimeout(savedTimer.current);
+      window.clearTimeout(fadeTimer.current);
+      window.clearTimeout(clearTimer.current);
+    };
+  }, []);
+
   const artwork = findArtwork(collectionState, artworkId);
   const collectionTitle = useMemo(() => {
     const collection = (collectionState?.collections || []).find((item) => item.artwork_ids?.includes(artworkId));
     return collection?.title || "Collection";
   }, [artworkId, collectionState]);
+
+  const persistArtworkChange = (updates) => {
+    window.clearTimeout(savedTimer.current);
+    window.clearTimeout(fadeTimer.current);
+    window.clearTimeout(clearTimer.current);
+    setSaveStatus("Saving…");
+    setSaveStatusVisible(true);
+    const saved = saveCollectionFoundation(updateArtworkState(collectionState, artworkId, updates));
+    setCollectionState(saved);
+    savedTimer.current = window.setTimeout(() => {
+      setSaveStatus("Changes saved");
+      fadeTimer.current = window.setTimeout(() => {
+        setSaveStatusVisible(false);
+        clearTimer.current = window.setTimeout(() => setSaveStatus(""), 500);
+      }, 3500);
+    }, 2000);
+  };
 
   const openPreview = () => {
     rememberPreviewReturnState({
@@ -253,8 +367,11 @@ export default function ArtistStudioArtworkPage() {
             <ArtistPerspective
               artwork={artwork}
               collectionTitle={collectionTitle}
+              onArtworkChange={persistArtworkChange}
               onBack={() => nav("/studio/collections")}
               onPreview={openPreview}
+              saveStatus={saveStatus}
+              saveStatusVisible={saveStatusVisible}
             />
           )}
         </>

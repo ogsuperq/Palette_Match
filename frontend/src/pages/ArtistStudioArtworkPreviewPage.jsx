@@ -18,7 +18,7 @@ function detailRows(artwork) {
 function storyEntries(artwork) {
   return Object.entries(artwork.story || {})
     .filter(([, value]) => value)
-    .map(([key, value]) => [key.charAt(0).toUpperCase() + key.slice(1), value]);
+    .map(([key, value]) => [key === "meaning" ? "Story" : key.charAt(0).toUpperCase() + key.slice(1), value]);
 }
 
 export default function ArtistStudioArtworkPreviewPage() {

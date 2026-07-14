@@ -574,6 +574,22 @@ export function updateCollectionStoryState(collectionState, collectionId, story)
   return withSaveState(collectionState, collections, undefined, timestamp);
 }
 
+export function updateArtworkState(collectionState, artworkId, updates) {
+  const timestamp = nowIso();
+  const artwork = (collectionState.artwork || []).map((item) =>
+    item.artwork_id === artworkId
+      ? {
+          ...item,
+          ...updates,
+          story: updates.story ? { ...(item.story || {}), ...updates.story } : item.story,
+          last_updated: timestamp,
+        }
+      : item
+  );
+
+  return withSaveState(collectionState, collectionState.collections, artwork, timestamp);
+}
+
 export function setFeaturedArtworkState(collectionState, collectionId, artworkId) {
   const collection = findCollection(collectionState, collectionId);
   if (!collection?.artwork_ids?.includes(artworkId)) return collectionState;

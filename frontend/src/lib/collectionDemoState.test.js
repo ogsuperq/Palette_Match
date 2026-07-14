@@ -19,6 +19,7 @@ import {
   setFeaturedArtworkState,
   setPresentationCoverArtworkState,
   togglePresentationFeaturedArtworkState,
+  updateArtworkState,
   updateCollectionStoryState,
 } from "./collectionDemoState";
 
@@ -175,6 +176,51 @@ describe("buildCollectionFoundationFromArtistProfile", () => {
     const reordered = moveArtworkInCollectionState(featured, collectionId, secondArtworkId, "up");
     expect(reordered.collections[0].artwork_ids[0]).toBe(secondArtworkId);
     expect(reordered.save_state.restorable).toBe(true);
+  });
+
+  it("updates canonical Artwork fields while preserving existing story fields", () => {
+    const state = buildCollectionFoundationFromArtistProfile({
+      user_id: "artist_123",
+      portfolio: [
+        {
+          url: "https://example.com/one.jpg",
+          title: "First",
+          medium: "Oil",
+          year: 2024,
+          inspiration: "Morning light",
+        },
+      ],
+    });
+    const artworkId = state.artwork[0].artwork_id;
+
+    const updated = updateArtworkState(state, artworkId, {
+      title: "First Study",
+      year_created: "2025",
+      medium: "Oil on linen",
+      availability: "Available for select commissions",
+      dimensions: "24 × 30 in",
+      story: {
+        meaning: "A quiet study of morning light.",
+      },
+    });
+    const artwork = findArtwork(updated, artworkId);
+
+    expect(artwork).toEqual(
+      expect.objectContaining({
+        title: "First Study",
+        year_created: "2025",
+        medium: "Oil on linen",
+        availability: "Available for select commissions",
+        dimensions: "24 × 30 in",
+      })
+    );
+    expect(artwork.story).toEqual(
+      expect.objectContaining({
+        inspiration: "Morning light",
+        meaning: "A quiet study of morning light.",
+      })
+    );
+    expect(updated.save_state.restorable).toBe(true);
   });
 
   it("normalizes older Collection state with a local active Presentation Draft", () => {
