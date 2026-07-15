@@ -28,7 +28,7 @@ export const DEMO_STUDIO_RELATIONSHIPS = [
     },
     title: "Entryway Commission",
     stage: "Proposal",
-    current_state: "Collector reviewing proposal",
+    current_state: "Proposal under review",
     time_label: "Today",
     artwork: {
       title: "Tidal Light",
@@ -342,7 +342,7 @@ export const DEMO_STUDIO_SHARED_COMMITMENTS = [
   {
     commitment_id: "commitment_emily_proposal_review",
     relationship_id: "relationship_emily_proposal",
-    commitment: "Collector reviewing proposal",
+    commitment: "Proposal under review",
     current_state: "In progress",
   },
   {
@@ -464,6 +464,7 @@ export const DEMO_STUDIO_CONVERSATION_HISTORY = [
 
 const CONVERSATION_STORAGE_KEY = "palette_match_studio_conversations_v1";
 const DRAFT_STORAGE_PREFIX = "palette_match_studio_conversation_draft_v1:";
+const PROPOSAL_STORAGE_KEY = "palette_match_studio_proposals_v1";
 
 function canUseLocalStorage() {
   return typeof window !== "undefined" && Boolean(window.localStorage);
@@ -481,6 +482,20 @@ function readStoredConversations() {
 function writeStoredConversations(conversations) {
   if (!canUseLocalStorage()) return;
   window.localStorage.setItem(CONVERSATION_STORAGE_KEY, JSON.stringify(conversations));
+}
+
+function readStoredProposals() {
+  if (!canUseLocalStorage()) return {};
+  try {
+    return JSON.parse(window.localStorage.getItem(PROPOSAL_STORAGE_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function writeStoredProposals(proposals) {
+  if (!canUseLocalStorage()) return;
+  window.localStorage.setItem(PROPOSAL_STORAGE_KEY, JSON.stringify(proposals));
 }
 
 export function groupRelationshipsBySection(relationships = DEMO_STUDIO_RELATIONSHIPS) {
@@ -571,4 +586,32 @@ export function saveConversationDraft(relationshipId, draft) {
 export function clearConversationDraft(relationshipId) {
   if (!canUseLocalStorage()) return;
   window.localStorage.removeItem(`${DRAFT_STORAGE_PREFIX}${relationshipId}`);
+}
+
+export function buildProposalFoundation(relationshipId) {
+  return {
+    relationship_id: relationshipId,
+    creative_vision: "",
+    artist_perspective: "",
+    collector_perspective: "",
+    updated_at: "",
+  };
+}
+
+export function loadStudioProposal(relationshipId) {
+  const stored = readStoredProposals();
+  return stored[relationshipId] || buildProposalFoundation(relationshipId);
+}
+
+export function saveStudioProposal(relationshipId, proposal) {
+  const stored = readStoredProposals();
+  const nextProposal = {
+    ...buildProposalFoundation(relationshipId),
+    ...proposal,
+    relationship_id: relationshipId,
+    updated_at: new Date().toISOString(),
+  };
+  stored[relationshipId] = nextProposal;
+  writeStoredProposals(stored);
+  return nextProposal;
 }

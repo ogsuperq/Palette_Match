@@ -6,10 +6,13 @@ import {
   DEMO_STUDIO_SHARED_REFERENCES,
   MESSAGE_SECTIONS,
   conversationHistoryForRelationship,
+  buildProposalFoundation,
   findStudioRelationship,
   getRelationshipRecommendation,
   groupRelationshipsBySection,
+  loadStudioProposal,
   loadStudioConversation,
+  saveStudioProposal,
   sharedCommitmentsForRelationship,
   sharedReferencesForRelationship,
 } from "./studioMessagesDemo";
@@ -126,7 +129,7 @@ describe("studio messages demo relationships", () => {
 
     expect(emilyCommitments.map((commitment) => commitment.commitment)).toEqual([
       "First concept",
-      "Collector reviewing proposal",
+      "Proposal under review",
       "Final approval",
     ]);
     emilyCommitments.forEach((commitment) => {
@@ -173,5 +176,34 @@ describe("studio messages demo relationships", () => {
     DEMO_STUDIO_CONVERSATION_HISTORY.forEach((entry) => {
       expect(findStudioRelationship(entry.relationship_id)).toBeTruthy();
     });
+  });
+
+  it("stores Proposal workspace content as relationship-owned local creative text only", () => {
+    const relationshipId = "relationship_emily_proposal";
+    const foundation = buildProposalFoundation(relationshipId);
+
+    expect(foundation).toEqual({
+      relationship_id: relationshipId,
+      creative_vision: "",
+      artist_perspective: "",
+      collector_perspective: "",
+      updated_at: "",
+    });
+
+    const saved = saveStudioProposal(relationshipId, {
+      creative_vision: "A quiet work for the entryway.",
+      artist_perspective: "Layered oil with a luminous center.",
+      collector_perspective: "A calm welcome home.",
+    });
+
+    expect(loadStudioProposal(relationshipId)).toEqual(saved);
+    expect(saved.relationship_id).toBe(relationshipId);
+    expect(saved.creative_vision).toContain("entryway");
+    expect(saved.price).toBeUndefined();
+    expect(saved.payment).toBeUndefined();
+    expect(saved.contract).toBeUndefined();
+    expect(saved.signature).toBeUndefined();
+    expect(saved.milestones).toBeUndefined();
+    expect(saved.approval_status).toBeUndefined();
   });
 });
