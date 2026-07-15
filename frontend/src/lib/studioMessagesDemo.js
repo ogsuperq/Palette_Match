@@ -465,6 +465,7 @@ export const DEMO_STUDIO_CONVERSATION_HISTORY = [
 const CONVERSATION_STORAGE_KEY = "palette_match_studio_conversations_v1";
 const DRAFT_STORAGE_PREFIX = "palette_match_studio_conversation_draft_v1:";
 const PROPOSAL_STORAGE_KEY = "palette_match_studio_proposals_v1";
+const AGREEMENT_STORAGE_KEY = "palette_match_studio_agreements_v1";
 
 function canUseLocalStorage() {
   return typeof window !== "undefined" && Boolean(window.localStorage);
@@ -496,6 +497,20 @@ function readStoredProposals() {
 function writeStoredProposals(proposals) {
   if (!canUseLocalStorage()) return;
   window.localStorage.setItem(PROPOSAL_STORAGE_KEY, JSON.stringify(proposals));
+}
+
+function readStoredAgreements() {
+  if (!canUseLocalStorage()) return {};
+  try {
+    return JSON.parse(window.localStorage.getItem(AGREEMENT_STORAGE_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function writeStoredAgreements(agreements) {
+  if (!canUseLocalStorage()) return;
+  window.localStorage.setItem(AGREEMENT_STORAGE_KEY, JSON.stringify(agreements));
 }
 
 export function groupRelationshipsBySection(relationships = DEMO_STUDIO_RELATIONSHIPS) {
@@ -614,4 +629,33 @@ export function saveStudioProposal(relationshipId, proposal) {
   stored[relationshipId] = nextProposal;
   writeStoredProposals(stored);
   return nextProposal;
+}
+
+export function buildAgreementFoundation(relationshipId) {
+  return {
+    relationship_id: relationshipId,
+    creative_scope: "",
+    creative_journey: "",
+    investment: "",
+    expectations: "",
+    updated_at: "",
+  };
+}
+
+export function loadStudioAgreement(relationshipId) {
+  const stored = readStoredAgreements();
+  return stored[relationshipId] || buildAgreementFoundation(relationshipId);
+}
+
+export function saveStudioAgreement(relationshipId, agreement) {
+  const stored = readStoredAgreements();
+  const nextAgreement = {
+    ...buildAgreementFoundation(relationshipId),
+    ...agreement,
+    relationship_id: relationshipId,
+    updated_at: new Date().toISOString(),
+  };
+  stored[relationshipId] = nextAgreement;
+  writeStoredAgreements(stored);
+  return nextAgreement;
 }

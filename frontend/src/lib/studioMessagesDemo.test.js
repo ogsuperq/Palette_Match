@@ -5,13 +5,16 @@ import {
   DEMO_STUDIO_SHARED_COMMITMENTS,
   DEMO_STUDIO_SHARED_REFERENCES,
   MESSAGE_SECTIONS,
+  buildAgreementFoundation,
   conversationHistoryForRelationship,
   buildProposalFoundation,
   findStudioRelationship,
   getRelationshipRecommendation,
   groupRelationshipsBySection,
+  loadStudioAgreement,
   loadStudioProposal,
   loadStudioConversation,
+  saveStudioAgreement,
   saveStudioProposal,
   sharedCommitmentsForRelationship,
   sharedReferencesForRelationship,
@@ -205,5 +208,37 @@ describe("studio messages demo relationships", () => {
     expect(saved.signature).toBeUndefined();
     expect(saved.milestones).toBeUndefined();
     expect(saved.approval_status).toBeUndefined();
+  });
+
+  it("stores Agreement foundation content without legal or transaction workflow fields", () => {
+    const relationshipId = "relationship_emily_proposal";
+    const foundation = buildAgreementFoundation(relationshipId);
+
+    expect(foundation).toEqual({
+      relationship_id: relationshipId,
+      creative_scope: "",
+      creative_journey: "",
+      investment: "",
+      expectations: "",
+      updated_at: "",
+    });
+
+    const saved = saveStudioAgreement(relationshipId, {
+      creative_scope: "A luminous entryway work.",
+      creative_journey: "A calm movement from shared vision toward finished artwork.",
+      investment: "A shared commitment to the creation.",
+      expectations: "Clear conversation and thoughtful reflection.",
+    });
+
+    expect(loadStudioAgreement(relationshipId)).toEqual(saved);
+    expect(saved.relationship_id).toBe(relationshipId);
+    expect(saved.creative_scope).toContain("entryway");
+    expect(saved.signature).toBeUndefined();
+    expect(saved.contract).toBeUndefined();
+    expect(saved.payment).toBeUndefined();
+    expect(saved.invoice).toBeUndefined();
+    expect(saved.tax_information).toBeUndefined();
+    expect(saved.milestones).toBeUndefined();
+    expect(saved.delivery_tracking).toBeUndefined();
   });
 });
