@@ -1,9 +1,11 @@
 import {
   DEMO_STUDIO_CONVERSATIONS,
+  DEMO_STUDIO_CONVERSATION_HISTORY,
   DEMO_STUDIO_RELATIONSHIPS,
   DEMO_STUDIO_SHARED_COMMITMENTS,
   DEMO_STUDIO_SHARED_REFERENCES,
   MESSAGE_SECTIONS,
+  conversationHistoryForRelationship,
   findStudioRelationship,
   getRelationshipRecommendation,
   groupRelationshipsBySection,
@@ -143,6 +145,33 @@ describe("studio messages demo relationships", () => {
   it("does not create orphaned Shared Commitments outside canonical relationships", () => {
     DEMO_STUDIO_SHARED_COMMITMENTS.forEach((commitment) => {
       expect(findStudioRelationship(commitment.relationship_id)).toBeTruthy();
+    });
+  });
+
+  it("keeps Conversation History relationship-owned and milestone-centered", () => {
+    const emilyHistory = conversationHistoryForRelationship("relationship_emily_proposal");
+
+    expect(emilyHistory.map((entry) => entry.milestone)).toEqual([
+      "First conversation",
+      "Proposal shared",
+      "Presentation reviewed",
+    ]);
+    emilyHistory.forEach((entry) => {
+      expect(entry.relationship_id).toBe("relationship_emily_proposal");
+      expect(entry.date_label).toBeTruthy();
+      expect(entry.description).toBeTruthy();
+      expect(entry.message_id).toBeUndefined();
+      expect(entry.user_id).toBeUndefined();
+      expect(entry.actor_id).toBeUndefined();
+      expect(entry.event_type).toBeUndefined();
+      expect(entry.timestamp).toBeUndefined();
+      expect(entry.audit_id).toBeUndefined();
+    });
+  });
+
+  it("does not create orphaned Conversation History outside canonical relationships", () => {
+    DEMO_STUDIO_CONVERSATION_HISTORY.forEach((entry) => {
+      expect(findStudioRelationship(entry.relationship_id)).toBeTruthy();
     });
   });
 });

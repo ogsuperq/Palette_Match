@@ -6,6 +6,7 @@ import { isDemoModeEnabled } from "@/lib/demoMode";
 import {
   appendStudioConversationMessage,
   clearConversationDraft,
+  conversationHistoryForRelationship,
   findStudioRelationship,
   loadConversationDraft,
   loadStudioConversation,
@@ -219,6 +220,46 @@ function SharedCommitments({ commitments }) {
   );
 }
 
+function ConversationHistory({ history }) {
+  return (
+    <section className="max-w-4xl mx-auto mt-10" data-testid="conversation-history">
+      <div>
+        <span className="overline text-neutral-500">Conversation History</span>
+        <h2 className="font-serif text-3xl tracking-tight mt-3">Every conversation tells a story.</h2>
+        <p className="text-neutral-600 mt-2 leading-relaxed">
+          Every story becomes part of your creative journey.
+        </p>
+      </div>
+
+      <div className="mt-7 space-y-6">
+        {history.length ? (
+          history.map((milestone) => (
+            <article
+              key={milestone.history_id}
+              className="bg-white border border-neutral-200 p-6 sm:p-7"
+              data-testid={`conversation-history-${milestone.history_id}`}
+            >
+              {milestone.date_label && (
+                <p className="text-xs text-neutral-500">{milestone.date_label}</p>
+              )}
+              <h3 className="font-serif text-2xl tracking-tight mt-3">{milestone.milestone}</h3>
+              {milestone.description && (
+                <p className="text-neutral-600 mt-3 leading-relaxed">{milestone.description}</p>
+              )}
+            </article>
+          ))
+        ) : (
+          <div className="bg-white border border-neutral-200 p-6 sm:p-8">
+            <p className="text-sm text-neutral-600 leading-relaxed">
+              Meaningful moments from this creative relationship will gather here over time.
+            </p>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function ConversationComposer({ value, onChange, onSubmit }) {
   return (
     <form className="max-w-4xl mx-auto mt-10 bg-white border border-neutral-200 p-5 sm:p-6" onSubmit={onSubmit}>
@@ -251,6 +292,7 @@ export default function ArtistStudioConversationPage() {
   const relationship = useMemo(() => findStudioRelationship(relationshipId), [relationshipId]);
   const sharedReferences = useMemo(() => sharedReferencesForRelationship(relationshipId), [relationshipId]);
   const sharedCommitments = useMemo(() => sharedCommitmentsForRelationship(relationshipId), [relationshipId]);
+  const conversationHistory = useMemo(() => conversationHistoryForRelationship(relationshipId), [relationshipId]);
 
   useEffect(() => {
     if (!relationshipId) return;
@@ -333,6 +375,7 @@ export default function ArtistStudioConversationPage() {
         <ConversationTimeline conversation={conversation} />
         <SharedReferences references={sharedReferences} onOpenReference={handleOpenReference} />
         <SharedCommitments commitments={sharedCommitments} />
+        <ConversationHistory history={conversationHistory} />
         <ConversationComposer value={draft} onChange={handleDraftChange} onSubmit={handleSubmit} />
       </main>
     </div>

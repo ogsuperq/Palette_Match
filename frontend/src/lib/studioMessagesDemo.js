@@ -389,6 +389,79 @@ export const DEMO_STUDIO_SHARED_COMMITMENTS = [
   },
 ];
 
+export const DEMO_STUDIO_CONVERSATION_HISTORY = [
+  {
+    history_id: "history_emily_first_conversation",
+    relationship_id: "relationship_emily_proposal",
+    milestone: "First conversation",
+    date_label: "Earlier this week",
+    description: "Emily shared the feeling she hoped the entryway would carry.",
+  },
+  {
+    history_id: "history_emily_proposal_shared",
+    relationship_id: "relationship_emily_proposal",
+    milestone: "Proposal shared",
+    date_label: "Earlier this week",
+    description: "The first proposal gathered palette, scale, and the quiet center of the work.",
+  },
+  {
+    history_id: "history_emily_presentation_reviewed",
+    relationship_id: "relationship_emily_proposal",
+    milestone: "Presentation reviewed",
+    date_label: "Today",
+    description: "Emily reviewed the current presentation and named the refinement that matters most.",
+  },
+  {
+    history_id: "history_david_first_conversation",
+    relationship_id: "relationship_david_sketch",
+    milestone: "First conversation",
+    date_label: "Yesterday",
+    description: "David described the warmth and breathing room he wanted the room to hold.",
+  },
+  {
+    history_id: "history_david_sketch_shared",
+    relationship_id: "relationship_david_sketch",
+    milestone: "Sketch shared",
+    date_label: "Yesterday",
+    description: "A warmer study opened a clearer direction for the living room.",
+  },
+  {
+    history_id: "history_sarah_first_conversation",
+    relationship_id: "relationship_sarah_planning",
+    milestone: "First conversation",
+    date_label: "This week",
+    description: "Sarah introduced the dining room light and the possibility of a paired work.",
+  },
+  {
+    history_id: "history_sarah_collection_shared",
+    relationship_id: "relationship_sarah_planning",
+    milestone: "Collection shared",
+    date_label: "This week",
+    description: "The Featured Collection gave the planning conversation a shared visual language.",
+  },
+  {
+    history_id: "history_mara_commission_accepted",
+    relationship_id: "relationship_mara_completed",
+    milestone: "Commission accepted",
+    date_label: "Last month",
+    description: "The bedroom commission moved forward with a soft horizon as its anchor.",
+  },
+  {
+    history_id: "history_mara_artwork_delivered",
+    relationship_id: "relationship_mara_completed",
+    milestone: "Artwork delivered",
+    date_label: "Last week",
+    description: "The finished work settled into the room with the quiet movement from the first study.",
+  },
+  {
+    history_id: "history_noah_first_conversation",
+    relationship_id: "relationship_noah_archived",
+    milestone: "First conversation",
+    date_label: "Earlier this month",
+    description: "Noah explored a study for a hallway that may return later.",
+  },
+];
+
 const CONVERSATION_STORAGE_KEY = "palette_match_studio_conversations_v1";
 const DRAFT_STORAGE_PREFIX = "palette_match_studio_conversation_draft_v1:";
 
@@ -446,6 +519,10 @@ export function sharedReferencesForRelationship(relationshipId, references = DEM
 
 export function sharedCommitmentsForRelationship(relationshipId, commitments = DEMO_STUDIO_SHARED_COMMITMENTS) {
   return commitments.filter((commitment) => commitment.relationship_id === relationshipId);
+}
+
+export function conversationHistoryForRelationship(relationshipId, history = DEMO_STUDIO_CONVERSATION_HISTORY) {
+  return history.filter((milestone) => milestone.relationship_id === relationshipId);
 }
 
 export function appendStudioConversationMessage(relationshipId, body, sender = { name: "Avery Stone", role: "Artist" }) {
