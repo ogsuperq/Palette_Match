@@ -10,6 +10,7 @@ import {
   loadConversationDraft,
   loadStudioConversation,
   saveConversationDraft,
+  sharedCommitmentsForRelationship,
   sharedReferencesForRelationship,
 } from "@/lib/studioMessagesDemo";
 
@@ -105,12 +106,12 @@ function SharedReferences({ references, onOpenReference }) {
     <section className="max-w-4xl mx-auto mt-10" data-testid="shared-references">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">
         <div>
-          <span className="overline text-neutral-500">Shared References</span>
+          <span className="overline text-neutral-500">Creative References</span>
           <h2 className="font-serif text-3xl tracking-tight mt-3">Everything that inspires this project.</h2>
           <p className="text-neutral-600 mt-2 leading-relaxed">Beautifully organized. Always within reach.</p>
         </div>
         <button type="button" className="btn-secondary" onClick={() => setShareOpen(true)}>
-          Share Reference
+          Share Creative Reference
         </button>
       </div>
 
@@ -156,7 +157,7 @@ function SharedReferences({ references, onOpenReference }) {
           data-testid="share-reference-placeholder"
         >
           <div className="bg-white border border-neutral-200 max-w-md w-full p-7 sm:p-8">
-            <span className="overline text-neutral-500">Share Reference</span>
+            <span className="overline text-neutral-500">Share Creative Reference</span>
             <h3 id="share-reference-title" className="font-serif text-3xl tracking-tight mt-3">
               Reference sharing is taking shape.
             </h3>
@@ -174,6 +175,46 @@ function SharedReferences({ references, onOpenReference }) {
           </div>
         </div>
       )}
+    </section>
+  );
+}
+
+function SharedCommitments({ commitments }) {
+  return (
+    <section className="max-w-4xl mx-auto mt-10" data-testid="shared-commitments">
+      <div>
+        <span className="overline text-neutral-500">Shared Commitments</span>
+        <h2 className="font-serif text-3xl tracking-tight mt-3">The important things we&apos;ve agreed upon.</h2>
+        <p className="text-neutral-600 mt-2 leading-relaxed">Clear. Trusted. Always easy to revisit.</p>
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-px bg-neutral-200 border border-neutral-200">
+        {commitments.length ? (
+          commitments.map((commitment) => (
+            <article
+              key={commitment.commitment_id}
+              className="bg-white p-5 sm:p-6"
+              data-testid={`shared-commitment-${commitment.commitment_id}`}
+            >
+              <span className="overline text-neutral-500">Commitment</span>
+              <h3 className="font-serif text-2xl tracking-tight mt-3">{commitment.commitment}</h3>
+              <div className="mt-6">
+                <span className="overline text-neutral-500">Current State</span>
+                <p className="text-neutral-700 mt-2 leading-relaxed">{commitment.current_state}</p>
+              </div>
+              {commitment.target_date_label && (
+                <p className="text-sm text-neutral-500 mt-4">{commitment.target_date_label}</p>
+              )}
+            </article>
+          ))
+        ) : (
+          <div className="bg-white p-6 sm:p-8 md:col-span-3">
+            <p className="text-sm text-neutral-600 leading-relaxed">
+              Important understandings will rest here when this relationship is ready for them.
+            </p>
+          </div>
+        )}
+      </div>
     </section>
   );
 }
@@ -209,6 +250,7 @@ export default function ArtistStudioConversationPage() {
   const [draft, setDraft] = useState("");
   const relationship = useMemo(() => findStudioRelationship(relationshipId), [relationshipId]);
   const sharedReferences = useMemo(() => sharedReferencesForRelationship(relationshipId), [relationshipId]);
+  const sharedCommitments = useMemo(() => sharedCommitmentsForRelationship(relationshipId), [relationshipId]);
 
   useEffect(() => {
     if (!relationshipId) return;
@@ -290,6 +332,7 @@ export default function ArtistStudioConversationPage() {
         <CreativeContext relationship={relationship} />
         <ConversationTimeline conversation={conversation} />
         <SharedReferences references={sharedReferences} onOpenReference={handleOpenReference} />
+        <SharedCommitments commitments={sharedCommitments} />
         <ConversationComposer value={draft} onChange={handleDraftChange} onSubmit={handleSubmit} />
       </main>
     </div>

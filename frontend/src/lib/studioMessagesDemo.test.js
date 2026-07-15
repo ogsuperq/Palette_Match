@@ -1,12 +1,14 @@
 import {
   DEMO_STUDIO_CONVERSATIONS,
   DEMO_STUDIO_RELATIONSHIPS,
+  DEMO_STUDIO_SHARED_COMMITMENTS,
   DEMO_STUDIO_SHARED_REFERENCES,
   MESSAGE_SECTIONS,
   findStudioRelationship,
   getRelationshipRecommendation,
   groupRelationshipsBySection,
   loadStudioConversation,
+  sharedCommitmentsForRelationship,
   sharedReferencesForRelationship,
 } from "./studioMessagesDemo";
 
@@ -92,7 +94,7 @@ describe("studio messages demo relationships", () => {
     });
   });
 
-  it("keeps Shared References relationship-owned and routed to existing Studio destinations", () => {
+  it("keeps Creative References relationship-owned and routed to existing Studio destinations", () => {
     const emilyReferences = sharedReferencesForRelationship("relationship_emily_proposal");
 
     expect(emilyReferences.map((reference) => reference.reference_type)).toEqual([
@@ -111,9 +113,36 @@ describe("studio messages demo relationships", () => {
     });
   });
 
-  it("does not create orphaned Shared References outside canonical relationships", () => {
+  it("does not create orphaned Creative References outside canonical relationships", () => {
     DEMO_STUDIO_SHARED_REFERENCES.forEach((reference) => {
       expect(findStudioRelationship(reference.relationship_id)).toBeTruthy();
+    });
+  });
+
+  it("keeps Shared Commitments relationship-owned without task-management fields", () => {
+    const emilyCommitments = sharedCommitmentsForRelationship("relationship_emily_proposal");
+
+    expect(emilyCommitments.map((commitment) => commitment.commitment)).toEqual([
+      "First concept",
+      "Collector reviewing proposal",
+      "Final approval",
+    ]);
+    emilyCommitments.forEach((commitment) => {
+      expect(commitment.relationship_id).toBe("relationship_emily_proposal");
+      expect(commitment.current_state).toBeTruthy();
+      expect(commitment.assignee).toBeUndefined();
+      expect(commitment.priority).toBeUndefined();
+      expect(commitment.task_id).toBeUndefined();
+      expect(commitment.ticket_id).toBeUndefined();
+      expect(commitment.due_date).toBeUndefined();
+      expect(commitment.reminder_at).toBeUndefined();
+      expect(commitment.completed_by).toBeUndefined();
+    });
+  });
+
+  it("does not create orphaned Shared Commitments outside canonical relationships", () => {
+    DEMO_STUDIO_SHARED_COMMITMENTS.forEach((commitment) => {
+      expect(findStudioRelationship(commitment.relationship_id)).toBeTruthy();
     });
   });
 });

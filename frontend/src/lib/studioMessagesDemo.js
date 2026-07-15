@@ -332,6 +332,63 @@ export const DEMO_STUDIO_SHARED_REFERENCES = [
   },
 ];
 
+export const DEMO_STUDIO_SHARED_COMMITMENTS = [
+  {
+    commitment_id: "commitment_emily_first_concept",
+    relationship_id: "relationship_emily_proposal",
+    commitment: "First concept",
+    current_state: "Planned for Friday",
+  },
+  {
+    commitment_id: "commitment_emily_proposal_review",
+    relationship_id: "relationship_emily_proposal",
+    commitment: "Collector reviewing proposal",
+    current_state: "In progress",
+  },
+  {
+    commitment_id: "commitment_emily_final_approval",
+    relationship_id: "relationship_emily_proposal",
+    commitment: "Final approval",
+    current_state: "Upcoming",
+  },
+  {
+    commitment_id: "commitment_david_sketch_direction",
+    relationship_id: "relationship_david_sketch",
+    commitment: "Sketch direction",
+    current_state: "In progress",
+  },
+  {
+    commitment_id: "commitment_david_color_study",
+    relationship_id: "relationship_david_sketch",
+    commitment: "Warm color study",
+    current_state: "Planned for Friday",
+  },
+  {
+    commitment_id: "commitment_sarah_room_context",
+    relationship_id: "relationship_sarah_planning",
+    commitment: "Dining room context",
+    current_state: "Completed",
+  },
+  {
+    commitment_id: "commitment_sarah_pairing_direction",
+    relationship_id: "relationship_sarah_planning",
+    commitment: "Artwork pairing direction",
+    current_state: "Upcoming",
+  },
+  {
+    commitment_id: "commitment_mara_delivery",
+    relationship_id: "relationship_mara_completed",
+    commitment: "Artwork delivery",
+    current_state: "Completed",
+  },
+  {
+    commitment_id: "commitment_noah_pause",
+    relationship_id: "relationship_noah_archived",
+    commitment: "Conversation set aside",
+    current_state: "Archived for later reference",
+  },
+];
+
 const CONVERSATION_STORAGE_KEY = "palette_match_studio_conversations_v1";
 const DRAFT_STORAGE_PREFIX = "palette_match_studio_conversation_draft_v1:";
 
@@ -385,6 +442,10 @@ export function loadStudioConversation(relationshipId) {
 
 export function sharedReferencesForRelationship(relationshipId, references = DEMO_STUDIO_SHARED_REFERENCES) {
   return references.filter((reference) => reference.relationship_id === relationshipId);
+}
+
+export function sharedCommitmentsForRelationship(relationshipId, commitments = DEMO_STUDIO_SHARED_COMMITMENTS) {
+  return commitments.filter((commitment) => commitment.relationship_id === relationshipId);
 }
 
 export function appendStudioConversationMessage(relationshipId, body, sender = { name: "Avery Stone", role: "Artist" }) {
