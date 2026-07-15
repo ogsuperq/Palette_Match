@@ -21,6 +21,7 @@ import ArtistStudioConversationPage from "@/pages/ArtistStudioConversationPage";
 import ArtistStudioHomePage from "@/pages/ArtistStudioHomePage";
 import ArtistStudioMessagesPage from "@/pages/ArtistStudioMessagesPage";
 import ArtistStudioPresentationPage from "@/pages/ArtistStudioPresentationPage";
+import ArtistStudioProposalPlaceholderPage from "@/pages/ArtistStudioProposalPlaceholderPage";
 
 function AppRouter() {
   const location = useLocation();
@@ -38,6 +39,7 @@ function AppRouter() {
       <Route path="/studio" element={<ArtistStudioHomePage />} />
       <Route path="/studio/messages" element={<ArtistStudioMessagesPage />} />
       <Route path="/studio/messages/:relationshipId" element={<ArtistStudioConversationPage />} />
+      <Route path="/studio/commissions/:relationshipId/proposal" element={<ArtistStudioProposalPlaceholderPage />} />
       <Route path="/studio/collection" element={<ArtistStudioCollectionPage />} />
       <Route path="/studio/collections" element={<ArtistStudioCollectionsPage />} />
       <Route path="/studio/collections/:collectionId/presentation" element={<ArtistStudioPresentationPage />} />

@@ -260,6 +260,28 @@ function ConversationHistory({ history }) {
   );
 }
 
+function InvitationToCreate({ onBeginProposal }) {
+  return (
+    <section className="max-w-4xl mx-auto mt-10" data-testid="invitation-to-create">
+      <div className="bg-white border border-neutral-200 p-7 sm:p-8">
+        <span className="overline text-neutral-500">Commission</span>
+        <h2 className="font-serif text-4xl tracking-tight mt-4">Invitation to Create</h2>
+        <div className="text-neutral-600 mt-5 leading-relaxed space-y-3">
+          <p>You&apos;ve taken the time to understand one another.</p>
+          <p>You&apos;ve shared ideas, inspiration, and expectations.</p>
+          <p>
+            When you&apos;re both ready, begin creating a proposal that reflects the creative journey
+            you&apos;ve already started together.
+          </p>
+        </div>
+        <button type="button" className="btn-primary mt-7" onClick={onBeginProposal}>
+          Begin Proposal
+        </button>
+      </div>
+    </section>
+  );
+}
+
 function ConversationComposer({ value, onChange, onSubmit }) {
   return (
     <form className="max-w-4xl mx-auto mt-10 bg-white border border-neutral-200 p-5 sm:p-6" onSubmit={onSubmit}>
@@ -320,6 +342,10 @@ export default function ArtistStudioConversationPage() {
     nav(reference.destination_path);
   }
 
+  function handleBeginProposal() {
+    nav(`/studio/commissions/${relationship.relationship_id}/proposal`);
+  }
+
   if (loading) return <div className="p-16 overline text-neutral-500">Loading...</div>;
 
   if (!user) {
@@ -376,6 +402,7 @@ export default function ArtistStudioConversationPage() {
         <SharedReferences references={sharedReferences} onOpenReference={handleOpenReference} />
         <SharedCommitments commitments={sharedCommitments} />
         <ConversationHistory history={conversationHistory} />
+        <InvitationToCreate onBeginProposal={handleBeginProposal} />
         <ConversationComposer value={draft} onChange={handleDraftChange} onSubmit={handleSubmit} />
       </main>
     </div>
