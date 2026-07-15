@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/lib/AuthContext";
-import { isDemoModeEnabled } from "@/lib/demoMode";
+import { DEMO_ARTISTS, isDemoModeEnabled } from "@/lib/demoMode";
 import {
   findStudioRelationship,
   loadStudioProposal,
@@ -37,12 +37,25 @@ function ProposalWritingSection({ title, purpose, value, onChange, placeholder }
   );
 }
 
+function ProposalSection({ title, children }) {
+  const hasContent = Boolean(String(children || "").trim());
+
+  return (
+    <section className="bg-white border border-neutral-200 p-7 sm:p-8">
+      <span className="overline text-neutral-500">{title}</span>
+      <p className="font-serif text-3xl tracking-tight mt-4 leading-snug whitespace-pre-wrap">
+        {hasContent ? children : "This part of the shared vision is still taking shape."}
+      </p>
+    </section>
+  );
+}
+
 function ProposalCreativeContext({ relationship, references }) {
   return (
-    <section className="bg-white border border-neutral-200 p-6 sm:p-7" data-testid="proposal-creative-context">
+    <section className="bg-white border border-neutral-200 p-7 sm:p-8" data-testid="proposal-creative-context">
       <span className="overline text-neutral-500">Creative Context</span>
-      <div className="mt-5 flex flex-col sm:flex-row gap-5">
-        <div className="w-full sm:w-36 aspect-square bg-neutral-100 overflow-hidden flex-shrink-0">
+      <div className="mt-5 flex flex-col sm:flex-row gap-6">
+        <div className="w-full sm:w-44 aspect-square bg-neutral-100 overflow-hidden flex-shrink-0">
           <img
             src={relationship.artwork.thumbnail_url}
             alt={relationship.artwork.alt}
@@ -50,16 +63,18 @@ function ProposalCreativeContext({ relationship, references }) {
           />
         </div>
         <div>
-          <h2 className="font-serif text-3xl tracking-tight">{relationship.artwork.title}</h2>
+          <span className="overline text-neutral-500">Artwork</span>
+          <h2 className="font-serif text-3xl tracking-tight mt-3">{relationship.artwork.title}</h2>
           <p className="text-neutral-600 mt-3 leading-relaxed">{relationship.title}</p>
           {references.length > 0 && (
-            <div className="mt-6">
+            <div className="mt-7">
               <span className="overline text-neutral-500">Creative References</span>
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-px bg-neutral-200 border border-neutral-200">
                 {references.map((reference) => (
-                  <span key={reference.reference_id} className="text-xs text-neutral-600 border border-neutral-200 px-3 py-2">
-                    {reference.reference_type}: {reference.title}
-                  </span>
+                  <div key={reference.reference_id} className="bg-white p-4">
+                    <p className="text-xs text-neutral-500">{reference.reference_type}</p>
+                    <p className="font-serif text-xl tracking-tight mt-2">{reference.title}</p>
+                  </div>
                 ))}
               </div>
             </div>
@@ -71,6 +86,7 @@ function ProposalCreativeContext({ relationship, references }) {
 }
 
 function ProposalWorkspace({ relationship }) {
+  const nav = useNavigate();
   const [proposal, setProposal] = useState(() => loadStudioProposal(relationship.relationship_id));
   const references = useMemo(
     () => sharedReferencesForRelationship(relationship.relationship_id),
@@ -109,6 +125,13 @@ function ProposalWorkspace({ relationship }) {
                 {relationship.title}
               </p>
               <p className="text-xs text-neutral-500" aria-live="polite">{formatSaved(proposal.updated_at)}</p>
+              <button
+                type="button"
+                className="btn-secondary mt-4"
+                onClick={() => nav(`/studio/commissions/${relationship.relationship_id}/proposal/presentation`)}
+              >
+                View Presentation
+              </button>
             </div>
           </header>
 
@@ -142,7 +165,58 @@ function ProposalWorkspace({ relationship }) {
   );
 }
 
-export default function ArtistStudioProposalPlaceholderPage() {
+function LookingAhead({ onBeginAgreement }) {
+  return (
+    <section className="bg-white border border-neutral-200 p-7 sm:p-8" data-testid="proposal-looking-ahead">
+      <span className="overline text-neutral-500">Looking Ahead</span>
+      <p className="font-serif text-3xl tracking-tight mt-4 leading-snug">
+        When this vision feels aligned, the next step is creating an agreement that reflects how you will bring it to life together.
+      </p>
+      <button type="button" className="btn-primary mt-7" onClick={onBeginAgreement}>
+        Begin Agreement
+      </button>
+    </section>
+  );
+}
+
+function ProposalPresentation({ relationship }) {
+  const nav = useNavigate();
+  const artistName = DEMO_ARTISTS[0]?.name || "Artist";
+  const proposal = useMemo(() => loadStudioProposal(relationship.relationship_id), [relationship.relationship_id]);
+  const references = useMemo(
+    () => sharedReferencesForRelationship(relationship.relationship_id),
+    [relationship.relationship_id]
+  );
+
+  return (
+    <main className="bg-[#FAFAFA] px-6 sm:px-10 py-10 sm:py-14" data-testid="proposal-presentation">
+      <section className="max-w-5xl mx-auto">
+        <header className="max-w-3xl">
+          <span className="overline text-neutral-500">Commission</span>
+          <h1 className="font-serif text-5xl sm:text-6xl tracking-tighter mt-6">Proposal</h1>
+          <p className="text-neutral-700 mt-6 text-lg leading-relaxed">
+            Created together by:
+          </p>
+          <p className="font-serif text-3xl tracking-tight mt-3">
+            {artistName}
+            <span className="text-neutral-400"> and </span>
+            {relationship.collaborator.name}
+          </p>
+        </header>
+
+        <div className="mt-12 space-y-6">
+          <ProposalSection title="Creative Vision">{proposal.creative_vision}</ProposalSection>
+          <ProposalSection title="Artist Perspective">{proposal.artist_perspective}</ProposalSection>
+          <ProposalSection title="Commissioning Perspective">{proposal.collector_perspective}</ProposalSection>
+          <ProposalCreativeContext relationship={relationship} references={references} />
+          <LookingAhead onBeginAgreement={() => nav(`/studio/commissions/${relationship.relationship_id}/agreement`)} />
+        </div>
+      </section>
+    </main>
+  );
+}
+
+export default function ArtistStudioProposalPlaceholderPage({ presentation = false }) {
   const { relationshipId } = useParams();
   const { user, loading } = useAuth();
   const relationship = useMemo(() => findStudioRelationship(relationshipId), [relationshipId]);
@@ -188,7 +262,7 @@ export default function ArtistStudioProposalPlaceholderPage() {
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
       <Navbar />
-      <ProposalWorkspace relationship={relationship} />
+      {presentation ? <ProposalPresentation relationship={relationship} /> : <ProposalWorkspace relationship={relationship} />}
     </div>
   );
 }

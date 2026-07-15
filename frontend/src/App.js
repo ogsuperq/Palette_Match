@@ -12,6 +12,7 @@ import ArtistsBrowsePage from "@/pages/ArtistsBrowsePage";
 import DashboardPage from "@/pages/DashboardPage";
 import ProjectDetailPage from "@/pages/ProjectDetailPage";
 import ArtistOnboardingPage from "@/pages/ArtistOnboardingPage";
+import ArtistStudioAgreementPlaceholderPage from "@/pages/ArtistStudioAgreementPlaceholderPage";
 import ArtistStudioArtworkPage from "@/pages/ArtistStudioArtworkPage";
 import ArtistStudioArtworkPreviewPage from "@/pages/ArtistStudioArtworkPreviewPage";
 import ArtistStudioCollectionPage from "@/pages/ArtistStudioCollectionPage";
@@ -40,6 +41,8 @@ function AppRouter() {
       <Route path="/studio/messages" element={<ArtistStudioMessagesPage />} />
       <Route path="/studio/messages/:relationshipId" element={<ArtistStudioConversationPage />} />
       <Route path="/studio/commissions/:relationshipId/proposal" element={<ArtistStudioProposalPlaceholderPage />} />
+      <Route path="/studio/commissions/:relationshipId/proposal/presentation" element={<ArtistStudioProposalPlaceholderPage presentation />} />
+      <Route path="/studio/commissions/:relationshipId/agreement" element={<ArtistStudioAgreementPlaceholderPage />} />
       <Route path="/studio/collection" element={<ArtistStudioCollectionPage />} />
       <Route path="/studio/collections" element={<ArtistStudioCollectionsPage />} />
       <Route path="/studio/collections/:collectionId/presentation" element={<ArtistStudioPresentationPage />} />
