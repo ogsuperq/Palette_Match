@@ -10,6 +10,7 @@ import {
   loadCollectionFoundation,
 } from "@/lib/collectionDemoState";
 import { returnFromPreview } from "@/lib/previewReturnState";
+import WorkspaceReturn from "@/components/WorkspaceReturn";
 
 export default function ArtistStudioCollectionPreviewPage() {
   const { collectionId } = useParams();
@@ -56,7 +57,8 @@ export default function ArtistStudioCollectionPreviewPage() {
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]" data-testid="collection-preview">
-      <div className="fixed top-0 left-0 right-0 z-20 bg-[#FAFAFA]/95 border-b border-neutral-200 px-6 sm:px-10 py-4 flex justify-end">
+      <div className="fixed top-0 left-0 right-0 z-20 bg-[#FAFAFA]/95 border-b border-neutral-200 px-6 sm:px-10 py-4 flex items-center justify-between gap-4">
+        <WorkspaceReturn workspace="studio" />
         <button
           type="button"
           className="btn-secondary !py-2 !px-4 text-xs"

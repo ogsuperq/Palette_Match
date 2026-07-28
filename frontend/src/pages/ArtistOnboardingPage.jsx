@@ -86,7 +86,7 @@ export default function ArtistOnboardingPage() {
               rows={4}
               data-testid="onb-bio"
               className="input-luxury mt-2"
-              placeholder="Tell collectors about your practice…"
+              placeholder="Tell Commissioning Partners about your practice…"
               value={form.bio}
               onChange={(e) => setForm({ ...form, bio: e.target.value })}
             />

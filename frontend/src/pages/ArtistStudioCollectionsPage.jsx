@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import WorkspaceReturn from "@/components/WorkspaceReturn";
 import { useAuth } from "@/lib/AuthContext";
 import { http } from "@/lib/api";
 import { DEMO_ARTISTS, isDemoModeEnabled } from "@/lib/demoMode";
@@ -436,6 +437,7 @@ export default function ArtistStudioCollectionsPage() {
         </div>
       ) : collectionState && artist ? (
         <main className="max-w-[1500px] mx-auto px-6 sm:px-10 py-12 sm:py-16" data-testid="artist-studio-collections">
+          <WorkspaceReturn workspace="studio" className="mb-10" />
           <div className="max-w-3xl mb-12">
             <span className="overline text-neutral-500">Artist Studio</span>
             <h1 className="font-serif text-5xl sm:text-6xl tracking-tighter mt-6">Your Collections</h1>

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import WorkspaceReturn from "@/components/WorkspaceReturn";
 import { useAuth } from "@/lib/AuthContext";
 import { http } from "@/lib/api";
 import { DEMO_ARTISTS, isDemoModeEnabled } from "@/lib/demoMode";
@@ -34,6 +35,7 @@ function FeaturedCollectionView({ collectionState }) {
       data-testid="artist-studio-collection"
     >
       <section className="max-w-[1500px] mx-auto px-6 sm:px-10 py-10 sm:py-14">
+        <WorkspaceReturn workspace="studio" className="mb-8" />
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
           <div className="lg:col-span-8">
             <div className="bg-neutral-100 overflow-hidden min-h-[58vh]">

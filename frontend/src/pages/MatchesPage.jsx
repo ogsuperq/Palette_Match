@@ -2,12 +2,15 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { http } from "@/lib/api";
 import Navbar from "@/components/Navbar";
+import WorkspaceReturn from "@/components/WorkspaceReturn";
+import { useAuth } from "@/lib/AuthContext";
 import { Sparkles, Loader2, ArrowRight } from "lucide-react";
 import { createDemoProposal, getDemoProjectBundle, isDemoProjectId } from "@/lib/demoMode";
 
 export default function MatchesPage() {
   const { id } = useParams();
   const nav = useNavigate();
+  const { user } = useAuth();
   const [project, setProject] = useState(null);
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -87,6 +90,7 @@ export default function MatchesPage() {
     <div className="min-h-screen bg-[#FAFAFA]">
       <Navbar />
       <div className="max-w-[1400px] mx-auto px-6 sm:px-10 py-16" data-testid="matches-page">
+        {user && <WorkspaceReturn workspace={user.role === "artist" ? "studio" : "concierge"} className="mb-10" />}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32">
             <Loader2 className="animate-spin text-neutral-400" size={28} />

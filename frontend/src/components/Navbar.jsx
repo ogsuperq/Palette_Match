@@ -30,10 +30,10 @@ export default function Navbar() {
             <>
               <button
                 data-testid="nav-dashboard"
-                onClick={() => nav(isArtist ? "/studio" : "/dashboard")}
+                onClick={() => nav(isArtist ? "/studio" : "/concierge")}
                 className="text-neutral-700 hover:text-neutral-900"
               >
-                {isArtist ? "Studio" : "Dashboard"}
+                {isArtist ? "Studio" : "Concierge"}
               </button>
               <button
                 data-testid="nav-logout"

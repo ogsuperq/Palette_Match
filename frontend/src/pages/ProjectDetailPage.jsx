@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { http } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
 import Navbar from "@/components/Navbar";
+import WorkspaceReturn from "@/components/WorkspaceReturn";
 import { Send, CheckCircle2, Sparkles, Loader2 } from "lucide-react";
 import {
   acceptDemoProposal,
@@ -246,6 +247,7 @@ export default function ProjectDetailPage() {
     <div className="min-h-screen bg-[#FAFAFA]">
       <Navbar />
       <div className="max-w-[1400px] mx-auto px-4 sm:px-10 py-10 sm:py-12" data-testid="project-detail">
+        {user && <WorkspaceReturn workspace={isArtist ? "studio" : "concierge"} className="mb-10" />}
         {/* Header */}
         <div className="mb-10">
           <span className="overline text-neutral-500">{project.status?.replace("_", " ")}</span>

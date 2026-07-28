@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import WorkspaceReturn from "@/components/WorkspaceReturn";
 import { useAuth } from "@/lib/AuthContext";
 import { DEMO_ARTISTS, isDemoModeEnabled } from "@/lib/demoMode";
 import {
@@ -83,6 +84,7 @@ function AgreementWorkspace({ relationship }) {
   return (
     <main className="bg-[#FAFAFA] px-6 sm:px-10 py-10 sm:py-14" data-testid="agreement-foundation">
       <section className="max-w-5xl mx-auto">
+        <WorkspaceReturn workspace="studio" className="mb-10" />
         <header className="max-w-3xl">
           <span className="overline text-neutral-500">Commission</span>
           <h1 className="font-serif text-5xl sm:text-6xl tracking-tighter mt-6">Agreement</h1>

@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import WorkspaceReturn from "@/components/WorkspaceReturn";
 import { useAuth } from "@/lib/AuthContext";
 import { isDemoModeEnabled } from "@/lib/demoMode";
 import {
@@ -8,6 +9,7 @@ import {
   MESSAGE_SECTIONS,
   getRelationshipRecommendation,
   groupRelationshipsBySection,
+  participantRoleLabel,
 } from "@/lib/studioMessagesDemo";
 
 function RelationshipCard({ relationship, onSelect }) {
@@ -27,7 +29,7 @@ function RelationshipCard({ relationship, onSelect }) {
           />
           <div className="min-w-0">
             <p className="font-medium text-neutral-900 truncate">{relationship.collaborator.name}</p>
-            <p className="text-xs text-neutral-500">{relationship.collaborator.role}</p>
+            <p className="text-xs text-neutral-500">{participantRoleLabel(relationship.collaborator.role)}</p>
           </div>
         </div>
         <span className="text-xs text-neutral-500 flex-shrink-0">{relationship.time_label}</span>
@@ -90,6 +92,7 @@ function MessagesDashboard() {
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-[#FAFAFA]" data-testid="artist-studio-messages">
       <section className="max-w-[1300px] mx-auto px-6 sm:px-10 py-10 sm:py-14">
+        <WorkspaceReturn workspace="studio" className="mb-10" />
         <div className="max-w-3xl">
           <span className="overline text-neutral-500">Artist Studio</span>
           <h1 className="font-serif text-5xl sm:text-6xl tracking-tighter mt-6">Messages</h1>

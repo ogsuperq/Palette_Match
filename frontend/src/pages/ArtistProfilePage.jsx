@@ -2,10 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { http } from "@/lib/api";
 import Navbar from "@/components/Navbar";
+import WorkspaceReturn from "@/components/WorkspaceReturn";
 import { getDemoArtist, getDemoReviews, isDemoModeEnabled } from "@/lib/demoMode";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function ArtistProfilePage() {
   const { userId } = useParams();
+  const { user } = useAuth();
   const [artist, setArtist] = useState(null);
   const [reviews, setReviews] = useState([]);
 
@@ -29,6 +32,7 @@ export default function ArtistProfilePage() {
     <div className="min-h-screen bg-[#FAFAFA]">
       <Navbar />
       <div className="max-w-[1400px] mx-auto px-6 sm:px-10 py-16" data-testid="artist-profile">
+        {user && <WorkspaceReturn workspace={user.role === "artist" ? "studio" : "concierge"} className="mb-10" />}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Left: bio */}
           <div className="lg:col-span-4">

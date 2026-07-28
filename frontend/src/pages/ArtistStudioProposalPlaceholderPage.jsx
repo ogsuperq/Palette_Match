@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import WorkspaceReturn from "@/components/WorkspaceReturn";
 import { useAuth } from "@/lib/AuthContext";
 import { DEMO_ARTISTS, isDemoModeEnabled } from "@/lib/demoMode";
 import {
@@ -106,6 +107,7 @@ function ProposalWorkspace({ relationship }) {
   return (
     <main className="bg-[#FAFAFA] px-6 sm:px-10 py-10 sm:py-14" data-testid="proposal-workspace">
       <section className="max-w-5xl mx-auto">
+        <WorkspaceReturn workspace="studio" className="mb-10" />
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
           <header className="lg:col-span-5">
             <span className="overline text-neutral-500">Commission</span>
@@ -191,6 +193,7 @@ function ProposalPresentation({ relationship }) {
   return (
     <main className="bg-[#FAFAFA] px-6 sm:px-10 py-10 sm:py-14" data-testid="proposal-presentation">
       <section className="max-w-5xl mx-auto">
+        <WorkspaceReturn workspace="studio" className="mb-10" />
         <header className="max-w-3xl">
           <span className="overline text-neutral-500">Commission</span>
           <h1 className="font-serif text-5xl sm:text-6xl tracking-tighter mt-6">Proposal</h1>

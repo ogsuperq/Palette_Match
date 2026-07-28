@@ -16,6 +16,11 @@ export const MESSAGE_SECTIONS = [
   },
 ];
 
+// Legacy relationship data retains its stored role; Studio presentation uses the platform role label.
+export function participantRoleLabel(role) {
+  return role === "Collector" ? "Commissioning Partner" : role;
+}
+
 export const DEMO_STUDIO_RELATIONSHIPS = [
   {
     relationship_id: "relationship_emily_proposal",

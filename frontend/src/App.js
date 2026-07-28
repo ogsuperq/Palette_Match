@@ -1,6 +1,7 @@
 import "@/App.css";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/lib/AuthContext";
+import ScrollToTop from "@/components/ScrollToTop";
 
 import LandingPage from "@/pages/LandingPage";
 import AuthCallback from "@/pages/AuthCallback";
@@ -23,6 +24,8 @@ import ArtistStudioHomePage from "@/pages/ArtistStudioHomePage";
 import ArtistStudioMessagesPage from "@/pages/ArtistStudioMessagesPage";
 import ArtistStudioPresentationPage from "@/pages/ArtistStudioPresentationPage";
 import ArtistStudioProposalPlaceholderPage from "@/pages/ArtistStudioProposalPlaceholderPage";
+import CommissioningPartnerConciergeHomePage from "@/pages/CommissioningPartnerConciergeHomePage";
+import CommissioningPartnerConciergeMessagesPage from "@/pages/CommissioningPartnerConciergeMessagesPage";
 
 function AppRouter() {
   const location = useLocation();
@@ -36,6 +39,9 @@ function AppRouter() {
       <Route path="/artists" element={<ArtistsBrowsePage />} />
       <Route path="/artist/:userId" element={<ArtistProfilePage />} />
       <Route path="/intake" element={<IntakeWizard />} />
+      <Route path="/concierge" element={<CommissioningPartnerConciergeHomePage />} />
+      <Route path="/concierge/messages" element={<CommissioningPartnerConciergeMessagesPage />} />
+      <Route path="/concierge/messages/:relationshipId" element={<CommissioningPartnerConciergeMessagesPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/studio" element={<ArtistStudioHomePage />} />
       <Route path="/studio/messages" element={<ArtistStudioMessagesPage />} />
@@ -62,6 +68,7 @@ function App() {
   return (
     <div className="App">
       <BrowserRouter>
+        <ScrollToTop />
         <AuthProvider>
           <AppRouter />
         </AuthProvider>

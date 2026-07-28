@@ -14,6 +14,7 @@ import {
   loadStudioAgreement,
   loadStudioProposal,
   loadStudioConversation,
+  participantRoleLabel,
   saveStudioAgreement,
   saveStudioProposal,
   sharedCommitmentsForRelationship,
@@ -21,6 +22,12 @@ import {
 } from "./studioMessagesDemo";
 
 describe("studio messages demo relationships", () => {
+  it("adapts the legacy Collector role for Studio presentation without changing stored data", () => {
+    expect(participantRoleLabel("Collector")).toBe("Commissioning Partner");
+    expect(participantRoleLabel("Designer")).toBe("Designer");
+    expect(DEMO_STUDIO_RELATIONSHIPS[0].collaborator.role).toBe("Collector");
+  });
+
   it("provides exactly one meaningful recommendation from active relationships", () => {
     const recommendations = DEMO_STUDIO_RELATIONSHIPS.filter((relationship) => relationship.recommendation);
     const recommendation = getRelationshipRecommendation();

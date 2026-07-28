@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import WorkspaceReturn from "@/components/WorkspaceReturn";
 import { useAuth } from "@/lib/AuthContext";
 import { http } from "@/lib/api";
 import { DEMO_ARTISTS, isDemoModeEnabled } from "@/lib/demoMode";
@@ -179,6 +180,7 @@ function SaveStateIndicator({ status, visible }) {
 function ArtistPerspective({ artwork, collectionTitle, onArtworkChange, onBack, onPreview, saveStatus, saveStatusVisible }) {
   return (
     <main className="max-w-[1500px] mx-auto px-6 sm:px-10 py-10 sm:py-14" data-testid="artwork-artist-perspective">
+      <WorkspaceReturn workspace="studio" className="mb-8" />
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
         <div className="lg:col-span-8">
           <ArtworkImage artwork={artwork} />
@@ -218,6 +220,7 @@ function ArtistPerspective({ artwork, collectionTitle, onArtworkChange, onBack, 
 function CollectorPerspective({ artwork }) {
   return (
     <main className="max-w-[1200px] mx-auto px-6 sm:px-10 py-10 sm:py-14" data-testid="artwork-collector-perspective">
+      <WorkspaceReturn workspace="studio" className="mb-8" />
       <ArtworkImage artwork={artwork} />
       <div className="mt-10">
         <h1 className="font-serif text-5xl tracking-tighter">{artwork.title}</h1>
@@ -357,7 +360,7 @@ export default function ArtistStudioArtworkPage() {
                 className={`px-4 py-3 text-sm ${perspective === "collector" ? "bg-neutral-900 text-white" : "bg-white text-neutral-700"}`}
                 onClick={() => setPerspective("collector")}
               >
-                Collector Perspective
+                Commissioning Partner Perspective
               </button>
             </div>
           </div>

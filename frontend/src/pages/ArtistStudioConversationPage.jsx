@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import WorkspaceReturn from "@/components/WorkspaceReturn";
 import { useAuth } from "@/lib/AuthContext";
 import { isDemoModeEnabled } from "@/lib/demoMode";
 import {
@@ -10,6 +11,7 @@ import {
   findStudioRelationship,
   loadConversationDraft,
   loadStudioConversation,
+  participantRoleLabel,
   saveConversationDraft,
   sharedCommitmentsForRelationship,
   sharedReferencesForRelationship,
@@ -88,7 +90,7 @@ function ConversationTimeline({ conversation }) {
               <article key={message.message_id} className="bg-white border border-neutral-200 p-6 sm:p-7">
                 <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                   <h3 className="font-medium text-neutral-900">{message.sender_name}</h3>
-                  <span className="text-xs text-neutral-500">{message.sender_role}</span>
+                  <span className="text-xs text-neutral-500">{participantRoleLabel(message.sender_role)}</span>
                 </div>
                 <p className="text-neutral-700 mt-4 leading-8 whitespace-pre-wrap">{message.body}</p>
               </article>
@@ -392,9 +394,12 @@ export default function ArtistStudioConversationPage() {
       <Navbar />
       <main className="px-6 sm:px-10 py-10 sm:py-14">
         <div className="max-w-4xl mx-auto mb-10">
-          <button type="button" className="btn-secondary !py-2 !px-4 text-xs" onClick={() => nav("/studio/messages")}>
-            Return to Messages
-          </button>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <WorkspaceReturn workspace="studio" />
+            <button type="button" className="btn-secondary !py-2 !px-4 text-xs" onClick={() => nav("/studio/messages")}>
+              Return to Messages
+            </button>
+          </div>
         </div>
         <RelationshipHeader relationship={relationship} />
         <CreativeContext relationship={relationship} />

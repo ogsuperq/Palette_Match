@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import WorkspaceReturn from "@/components/WorkspaceReturn";
 import { useAuth } from "@/lib/AuthContext";
 import { http } from "@/lib/api";
 import { DEMO_ARTISTS, isDemoModeEnabled } from "@/lib/demoMode";
@@ -36,7 +37,7 @@ function PresentationReadiness({ readiness, onPreview }) {
       <p className="text-neutral-600 mt-4 leading-relaxed">
         {readiness.readyToReview
           ? "Your Collection has the essential elements for a thoughtful preview."
-          : "A few elements can help collectors experience the Collection as you intend."}
+          : "A few elements can help Commissioning Partners experience the Collection as you intend."}
       </p>
 
       {readiness.ready.length > 0 && (
@@ -174,12 +175,13 @@ export default function ArtistStudioPresentationPage() {
         </div>
       ) : collectionState && artist && collection && activeDraft ? (
         <main className="max-w-[1500px] mx-auto px-6 sm:px-10 py-10 sm:py-14" data-testid="collection-presentation">
+          <WorkspaceReturn workspace="studio" className="mb-10" />
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 mb-10">
             <div className="max-w-3xl">
               <span className="overline text-neutral-500">Presentation</span>
               <h1 className="font-serif text-5xl sm:text-6xl tracking-tighter mt-6">{collection.title}</h1>
               <p className="text-neutral-600 mt-5 text-lg leading-relaxed">
-                Shape the visual narrative collectors experience before anything becomes public.
+                Shape the visual narrative Commissioning Partners experience before anything becomes public.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">

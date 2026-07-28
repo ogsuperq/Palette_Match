@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { http } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
 import Navbar from "@/components/Navbar";
+import WorkspaceReturn from "@/components/WorkspaceReturn";
 import { ArrowRight, ArrowLeft, Sparkles, Loader2 } from "lucide-react";
 import { startLogin } from "@/lib/auth";
 import { createDemoProject, isDemoModeEnabled } from "@/lib/demoMode";
@@ -91,6 +92,7 @@ export default function IntakeWizard() {
     <div className="min-h-screen bg-[#FAFAFA]">
       <Navbar />
       <div className="max-w-3xl mx-auto px-6 py-16" data-testid="intake-wizard">
+        {user && user.role !== "artist" && <WorkspaceReturn workspace="concierge" className="mb-10" />}
         {/* Step indicator */}
         <div className="flex items-center justify-between mb-12 overline text-neutral-500">
           <span data-testid="step-indicator">{String(step + 1).padStart(2, "0")} / {String(steps.length).padStart(2, "0")}</span>
