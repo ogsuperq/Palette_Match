@@ -25,8 +25,6 @@ const STEPS = [
   },
 ];
 
-const WAITLIST_TIMEOUT_MS = 8000;
-
 export default function LandingPage() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("idle");
@@ -41,14 +39,11 @@ export default function LandingPage() {
     }
 
     setStatus("submitting");
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), WAITLIST_TIMEOUT_MS);
 
     try {
       const response = await fetch(`${API}/waitlist`, {
         method: "POST",
         credentials: "omit",
-        signal: controller.signal,
         headers: {
           "Content-Type": "application/json",
         },
@@ -63,14 +58,7 @@ export default function LandingPage() {
       setEmail("");
       setStatus("success");
     } catch (error) {
-      if (error.name === "AbortError") {
-        setEmail("");
-        setStatus("maybe-success");
-        return;
-      }
       setStatus("submit-error");
-    } finally {
-      window.clearTimeout(timeoutId);
     }
   };
 
@@ -142,7 +130,6 @@ export default function LandingPage() {
                   touch as beta access opens.
                 </>
               )}
-              {status === "maybe-success" && "You may already be on the list. Please check back soon."}
               {status === "submit-error" && "We could not save your email. Please try again in a moment."}
               {status === "error" && "Enter a valid email address to join the waitlist."}
               {status === "idle" && "Early access updates only. No noise."}
